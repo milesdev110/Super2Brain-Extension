@@ -28,7 +28,7 @@ export const createStreamCompletion = async (
       messages,
       temperature,
       stream: true,
-      max_tokens: 1000,
+      max_tokens: 2000,
     });
 
     return handleStreamResponse(response);

@@ -131,7 +131,6 @@ export async function getClaudeApiKey() {
   return apiKey || "";
 }
 
-
 export const setOpenAiUrl = (url) => {
   return setItem("openAiUrl", url);
 };
@@ -389,4 +388,71 @@ export async function checkNeedsUpdate(v2) {
   await setLastUpdateCheck(now);
 
   return compareVersions(v2.version, currentVersion) > 0;
+}
+
+export async function setTokenTime(time) {
+  return setItem(`tokenTime`, time);
+}
+
+export async function getTokenTime() {
+  return getItem(`tokenTime`);
+}
+
+export async function removeTokenTime() {
+  return setItem(`tokenTime`, null);
+}
+
+export async function setSearchSourceStorage(source) {
+  return setItem("searchSource", source);
+}
+
+export async function getSearchSourceStorage() {
+  return await getItem("searchSource");
+}
+
+export async function setZhihuCookies(cookies) {
+  return setItem("zhihuCookies", cookies);
+}
+
+export async function getZhihuCookies() {
+  return await getItem("zhihuCookies");
+}
+
+export async function removeZhihuCookies() {
+  return setItem("zhihuCookies", null);
+}
+
+export async function removeXhsCookies() {
+  return setItem("xhsCookies", null);
+}
+
+export async function setCurrentSearchSource(source) {
+  return setItem("currentSearchSource", source);
+}
+
+export async function getCurrentSearchSource() {
+  return getItem("currentSearchSource");
+}
+
+export async function setGetPageCount(count) {
+  const currentCount = await getGetPageCount();
+  const newCount = Number(currentCount || 0) + Number(count || 0);
+  console.log("currentCount", newCount);
+  return setItem("getPageCount", newCount);
+}
+
+export async function getGetPageCount() {
+  return getItem("getPageCount") || 0;
+}
+
+export async function removeGetPageCount() {
+  return setItem("getPageCount", null);
+}
+
+export async function setXhsCookies(cookies) {
+  return setItem("xhsCookies", cookies);
+}
+
+export async function getXhsCookies() {
+  return getItem("xhsCookies");
 }

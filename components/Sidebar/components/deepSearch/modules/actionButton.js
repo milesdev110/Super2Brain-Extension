@@ -21,15 +21,15 @@ const ActionButtons = ({
       const tempDiv = document.createElement("div");
       tempDiv.className = "markdown-body";
       Object.assign(tempDiv.style, {
-        
-        position: "absolute", // 改为absolute
+        position: "fixed", // 改为fixed以确保正确渲染
         width: "170mm",
-        left: "-9999px", // 移到屏幕外
-        top: 0,
+        left: "0", // 改为0，但设置不可见
+        top: "0",
         backgroundColor: "#ffffff",
         padding: "24px",
         margin: "0",
-        visibility: "visible", // 保持可见性
+        opacity: "0", // 使用opacity代替visibility
+        zIndex: "-1000", // 确保在最底层
       });
 
       // 使用DOMParser解析markdown内容
@@ -40,17 +40,17 @@ const ActionButtons = ({
       `;
       document.body.appendChild(tempDiv);
 
+      // 等待DOM完全渲染
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // 等待图片加载完成
       const loadImages = async () => {
         const images = tempDiv.getElementsByTagName("img");
         const imagePromises = Array.from(images).map((img) => {
+          if (img.complete) return Promise.resolve();
           return new Promise((resolve, reject) => {
-            if (img.complete) {
-              resolve();
-            } else {
-              img.onload = resolve;
-              img.onerror = reject;
-            }
+            img.onload = resolve;
+            img.onerror = reject;
           });
         });
         await Promise.all(imagePromises);
@@ -63,9 +63,17 @@ const ActionButtons = ({
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        logging: false,
+        logging: true, // 开启日志以便调试
         windowWidth: tempDiv.scrollWidth,
         windowHeight: tempDiv.scrollHeight,
+        onclone: (clonedDoc) => {
+          // 确保克隆的文档中的元素可见
+          const clonedElement = clonedDoc.querySelector(".markdown-body");
+          if (clonedElement) {
+            clonedElement.style.opacity = "1";
+            clonedElement.style.position = "relative";
+          }
+        },
       });
 
       // 创建PDF
@@ -90,45 +98,42 @@ const ActionButtons = ({
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      let heightLeft = imgHeight;
-      let position = 0;
-      let pageNumber = 1;
+      // 修改分页逻辑
+      const contentDiv = tempDiv.querySelector("div");
+      const sections = Array.from(contentDiv.children);
 
-      while (heightLeft > 0) {
-        if (position === 0) {
+      // 第一页添加标题和第一部分内容
+      let currentPage = 0;
+      let currentHeight = 0;
+      const maxHeight = contentHeight - 20; // 留出一些边距
+
+      sections.forEach((section, index) => {
+        const sectionHeight = (section.offsetHeight * imgWidth) / canvas.width;
+
+        // 如果当前内容加上新section会超出页面，则新建页面
+        if (currentHeight + sectionHeight > maxHeight && currentHeight > 0) {
+          currentPage++;
+          currentHeight = 0;
+
+          pdf.addPage();
           pdf.addImage(
             imgData,
             "PNG",
             margins.left,
-            margins.top,
+            margins.top - currentPage * contentHeight,
             imgWidth,
             imgHeight
           );
         } else {
-          pdf.addPage();
-          // 调整位置以显示下一部分图片
-          pdf.addImage(
-            imgData,
-            "PNG",
-            margins.left, // 左边距
-            margins.top - position, // 向上偏移以显示下一部分
-            imgWidth,
-            imgHeight
-          );
+          if (currentPage === 0) {
+            pdf.addImage(imgData, "PNG", margins.left, margins.top, imgWidth, imgHeight);
+          }
         }
 
-        // 添加页脚
-        const footer = `导出时间：${new Date().toLocaleString()} - 第 ${pageNumber} 页`;
-        pdf.setFontSize(10);
-        pdf.setTextColor(100);
-        pdf.text(footer, margins.left, pageHeight - 5);
+        currentHeight += sectionHeight;
+      });
 
-        heightLeft -= contentHeight;
-        position += contentHeight;
-        pageNumber++;
-      }
-
-      pdf.save(`对话记录_${new Date().toISOString().slice(0, 10)}.pdf`);
+      pdf.save(`${userQuestion}_${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (err) {
       console.error("PDF导出失败:", err);
       alert("PDF导出失败: " + err.message);
@@ -154,7 +159,7 @@ const ActionButtons = ({
   };
 
   return (
-    <div className="flex items-center gap-3 px-2 py-3">
+    <div className="flex items-center gap-3 px-2">
       {messages.length > 0 && (
         <motion.button
           initial={{ opacity: 0, y: 20 }}

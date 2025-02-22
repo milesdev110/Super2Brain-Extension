@@ -4,100 +4,178 @@ import {
   Bot,
   Copy,
   Check,
-  RefreshCw,
   Loader2,
   MessageSquare,
   Globe,
   ChevronRight,
 } from "lucide-react";
 import { Loading } from "../../common/loading";
-
-const MessageContent = ({ content, reason_content, messageId }) => {
-  const [expandedStates, setExpandedStates] = useState(new Map());
-
-  const isExpanded = expandedStates.get(messageId) || false;
-
-  const toggleExpand = (id) => {
-    setExpandedStates((prev) => {
-      const newMap = new Map(prev);
-      newMap.set(id, !prev.get(id));
-      return newMap;
-    });
+import katex from "katex";
+import "katex/dist/katex.min.css";
+import { AnswerQuestion } from "./answerQuestion";
+const MessageContent = ({
+  content,
+  reason_content,
+  messageId,
+  isAiThinking,
+  timestamp,
+  isExpanded,
+  relatedQuestions = [],
+  isAssistant,
+  isRelatedQuestions,
+  isShowRelatedQuestions,
+}) => {
+  const [isContentExpanded, setIsContentExpanded] = useState(isExpanded);
+  const [time, setTime] = useState(0);
+  const toggleExpand = () => {
+    setIsContentExpanded(!isContentExpanded);
   };
 
-  const commonClassNames = `text-sm break-words leading-relaxed prose prose-sm max-w-none 
-    [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:pb-2 [&_h1]:border-b [&_h1]:border-gray-200
-    [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-6
-    [&_h3]:text-lg [&_h3]:font-bold [&_h3]:mb-2 [&_h3]:mt-4
-    [&_h4]:text-base [&_h4]:font-bold [&_h4]:mb-2 [&_h4]:mt-4
-    [&_h5]:text-base [&_h5]:font-semibold [&_h5]:mb-2 [&_h5]:mt-3
-    [&_h6]:text-sm [&_h6]:font-semibold [&_h6]:mb-2 [&_h6]:mt-3
-    dark:[&_h1]:border-gray-700`;
+  const commonClassNames = `text-sm text-gray-700 break-words leading-relaxed prose overflow-wrap break-word`;
+
+  const processLatex = (content) => {
+    content = content.replace(/\\\[([\s\S]*?)\\\]/g, (match, tex) => {
+      try {
+        return katex.renderToString(tex.trim(), {
+          displayMode: true,
+          throwOnError: false,
+        });
+      } catch (err) {
+        console.error("LaTeX渲染错误:", err);
+        return match;
+      }
+    });
+
+    // 处理其他格式的公式
+    return content.replace(
+      /\$\$(.*?)\$\$|\$(.*?)\$|\/\[(.*?)\]/g,
+      (match, block, inline, bracket) => {
+        try {
+          const tex = block || inline || bracket;
+          const isBlock = !!block;
+          if (!tex) return match;
+
+          return katex.renderToString(tex.trim(), {
+            displayMode: isBlock,
+            throwOnError: false,
+          });
+        } catch (err) {
+          console.error("LaTeX渲染错误:", err);
+          return match;
+        }
+      }
+    );
+  };
+
+  const renderContent = (text) => ({
+    __html: marked(processLatex(text), {
+      breaks: true,
+      gfm: true,
+    }),
+  });
+
+  useEffect(() => {
+    if (content === "" && reason_content === "") {
+      const intervalId = setInterval(() => {
+        console.log("计时器计时器");
+        setTime((prevTime) => Math.floor((Date.now() - timestamp) / 1000));
+      }, 1000);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [content, reason_content, timestamp]);
 
   return (
-    <div className="space-y-3">
-      {reason_content && reason_content.trim() && (
-        <div>
-          <button
-            onClick={() => toggleExpand(messageId)}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-2 transition-colors duration-200"
-          >
-            <ChevronRight
-              className={`w-4 h-4 transition-transform duration-200 
-                ${isExpanded ? "rotate-90" : ""}`}
-            />
-            <span className="text-sm">思考过程</span>
-          </button>
-
-          {isExpanded && (
-            <div
-              className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500
-                border border-gray-100 transition-all duration-200"
+    <>
+      <div className="space-y-3">
+        {content === "" && reason_content === "" && (
+          <div className="text-sm text-gray-500 animate-pulse flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+            S2B正在思考中（{time}s）
+          </div>
+        )}
+        {reason_content && reason_content.trim() && (
+          <div>
+            <button
+              onClick={toggleExpand}
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-2 transition-colors duration-200"
             >
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: marked.parse(reason_content, {
-                    breaks: true,
-                    gfm: true,
-                  }),
-                }}
+              <ChevronRight
+                className={`w-4 h-4 transition-transform duration-200 
+                ${isContentExpanded ? "rotate-90" : ""}`}
               />
-            </div>
-          )}
-        </div>
-      )}
+              <span className="text-sm">思考过程</span>
+            </button>
 
-      {Array.isArray(content) ? (
-        <div className={commonClassNames}>
-          {content.map((item, idx) => (
-            <div key={idx}>
-              {item.type === "text" && (
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: marked.parse(item.text, {
-                      breaks: true,
-                      gfm: true,
-                    }),
-                  }}
-                />
-              )}
-              {item.type === "image_url" && (
-                <img
-                  src={item.image_url.url}
-                  alt="uploaded"
-                  className="max-w-full h-auto"
-                />
-              )}
-            </div>
-          ))}
+            {isContentExpanded && (
+              <div
+                className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500
+                border border-gray-100 transition-all duration-200"
+              >
+                <div dangerouslySetInnerHTML={renderContent(reason_content)} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {Array.isArray(content) ? (
+          <div className={commonClassNames}>
+            {content.map((item, idx) => (
+              <div key={idx}>
+                {item.type === "text" && (
+                  <div dangerouslySetInnerHTML={renderContent(item.text)} />
+                )}
+                {item.type === "image_url" && (
+                  <img
+                    src={item.image_url.url}
+                    alt="uploaded"
+                    className="max-w-full h-auto"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className={commonClassNames}
+            dangerouslySetInnerHTML={renderContent(content)}
+          />
+        )}
+      </div>
+    </>
+  );
+};
+
+const RelatedQuestions = ({ questions, isLoading, onQuestionClick }) => {
+  const formatQuestion = (question) => question.replace(/^\d+\.\s*/, "");
+
+  const QuestionItem = ({ question, index }) => (
+    <div
+      onClick={() => onQuestionClick(formatQuestion(question))}
+      className="flex items-center gap-2 text-sm text-gray-600 mb-1.5
+        px-4 py-1.5 rounded-lg bg-gray-50 border border-gray-100
+        hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 
+        hover:shadow-sm transform hover:-translate-y-0.5
+        cursor-pointer transition-all duration-200"
+    >
+      <span>{`${index + 1}. ${question}`}</span>
+    </div>
+  );
+
+  return (
+    <div className="absolute bottom-[2px] left-4 z-10">
+      <div className="text-base font-medium text-gray-700 mb-2 flex items-center">
+        <MessageSquare className="w-4 h-4 mr-2" />
+        猜你想问
+      </div>
+      {isLoading ? (
+        <div className="flex items-center gap-2">
+          <Loading />
         </div>
       ) : (
-        <div
-          className={commonClassNames}
-          dangerouslySetInnerHTML={{
-            __html: marked.parse(content, { breaks: true, gfm: true }),
-          }}
-        />
+        questions.map((question, index) => (
+          <QuestionItem key={index} question={question} index={index} />
+        ))
       )}
     </div>
   );
@@ -113,14 +191,12 @@ export const ChatMessageList = ({
   currentUrlRelatedQuestions,
   currentUrlLoading,
   onQuestionClick,
+  thinkingTimeMap,
 }) => {
   const [pageTitle, setPageTitle] = useState("");
-  const [thinkingTime, setThinkingTime] = useState(0);
-  const timerRef = useRef(null);
-  const timerMapRef = useRef(new Map());
-  const messageRefs = useRef({});
   const [prevMessageHeight, setPrevMessageHeight] = useState(0);
   const messagesEndRef = useRef(null);
+  const messageRefs = useRef({});
   const [messagesContainerHeight, setMessagesContainerHeight] = useState(0);
 
   const getPageTitle = async () => {
@@ -152,48 +228,11 @@ export const ChatMessageList = ({
   }, [currentUrl]);
 
   useEffect(() => {
-    // 清理其他URL的计时器
-    const cleanupTimers = () => {
-      timerMapRef.current.forEach((timer, url) => {
-        if (url !== currentUrl) {
-          clearInterval(timer);
-          timerMapRef.current.delete(url);
-        }
-      });
-    };
-
-    // 处理当前URL的计时器
-    if (isAiThinking) {
-      setThinkingTime(0);
-      const timer = setInterval(() => {
-        setThinkingTime((prev) => prev + 1);
-      }, 1000);
-      timerMapRef.current.set(currentUrl, timer);
-      timerRef.current = timer;
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-        timerMapRef.current.delete(currentUrl);
-      }
-    }
-
-    cleanupTimers();
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [isAiThinking, currentUrl]);
-
-  useEffect(() => {
     if (messages.length > 1) {
       const prevMessageEl = messageRefs.current[messages.length - 2];
       if (prevMessageEl) {
         const height = prevMessageEl.getBoundingClientRect().height;
         setPrevMessageHeight(height);
-        console.log("Previous message height:", height);
       }
     }
   }, [messages]);
@@ -202,15 +241,16 @@ export const ChatMessageList = ({
     if (messagesEndRef.current) {
       const container = messagesEndRef.current.parentElement;
       if (container) {
-        setTimeout(() => {
-          container.scrollTo({
-            top: container.scrollHeight,
-            behavior: 'smooth'
-          });
-        }, 0);
+        container.scrollTo({
+          top: container.scrollHeight,
+        });
       }
     }
   }, []);
+
+  useEffect(() => {
+    console.log("currentUrlRelatedQuestions", messages);
+  }, [messages]);
 
   useEffect(() => {
     if (isAiThinking) {
@@ -219,7 +259,7 @@ export const ChatMessageList = ({
       });
       return () => cancelAnimationFrame(rafId);
     }
-  }, [messages, isAiThinking, scrollToBottom]);
+  }, [isAiThinking, scrollToBottom]);
 
   useEffect(() => {
     if (messages.length > 1) {
@@ -231,37 +271,13 @@ export const ChatMessageList = ({
     }
   }, [messages]);
 
-  const renderRelatedQuestions = () => {
-    return (
-      <div className="absolute bottom-[10px] left-4 z-10">
-        <div className="text-base font-medium text-gray-700 mb-2 flex items-center">
-          <MessageSquare className="w-4 h-4 mr-2" />
-          猜你想问
-        </div>
-        {currentUrlLoading ? (
-          <div className="flex items-center gap-2">
-            <Loading />
-          </div>
-        ) : (
-          currentUrlRelatedQuestions.map((question, index) => (
-            <div
-              key={index}
-              onClick={() => onQuestionClick(question.replace(/^\d+\.\s*/, ""))}
-              className="flex items-center gap-2 text-sm text-gray-600 mb-1.5
-                px-4 py-1.5 rounded-lg bg-gray-50 border border-gray-100
-                hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 
-                hover:shadow-sm transform hover:-translate-y-0.5
-                cursor-pointer transition-all duration-200"
-            >
-              <span>
-                {index + 1}. {question}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-    );
-  };
+  const renderRelatedQuestions = () => (
+    <RelatedQuestions
+      questions={currentUrlRelatedQuestions}
+      isLoading={currentUrlLoading}
+      onQuestionClick={onQuestionClick}
+    />
+  );
 
   const renderPageTitle = () => {
     const truncateTitle = (title) => {
@@ -270,7 +286,7 @@ export const ChatMessageList = ({
 
     return (
       pageTitle && (
-        <div className="w-full mb-4">
+        <div className="w-full mb-4 ">
           <div
             className="flex items-center gap-2 text-sm text-gray-600 font-medium 
             bg-gradient-to-r from-white via-gray-50 to-indigo-50/30
@@ -319,48 +335,18 @@ export const ChatMessageList = ({
     );
   };
 
-  const renderThinkingState = () => (
-    <div
-      style={{
-        height:
-          messages.length === 1
-            ? "auto"
-            : `calc(100vh - ${messagesContainerHeight + 300}px)`,
-      }}
-    >
-      <div className="flex justify-start bg-transparent">
-        <div className="relative w-full rounded-xl shadow-sm bg-white border border-gray-100 flex-0">
-          <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white p-3">
-            <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-indigo-600" />
-              <span className="font-medium text-indigo-600">super2brain</span>
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="flex items-center space-x-2">
-              <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-              <span className="text-sm text-gray-500">
-                正在思考中 ({thinkingTime}s)
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div
-      className="flex-1 overflow-y-auto p-4 relative bg-white rounded-xl flex flex-col h-full scroll-smooth"
-      style={{ 
-        maxHeight: messages.length <= 2 ? "100%" : "calc(100vh - 200px)" 
+      className="flex-1 overflow-y-auto p-4 relative bg-white rounded-xl flex flex-col h-full scroll-smooth scrollbar-hidden"
+      style={{
+        maxHeight: messages.length <= 2 ? "100%" : "calc(100vh - 200px)",
       }}
     >
       {renderPageTitle()}
       {messages.length === 0 ? (
         renderEmptyState()
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6 ">
           {messages.map((msg, index) => {
             const isLastMessage = index === messages.length - 1;
             const isAssistant = msg.role === "assistant";
@@ -375,7 +361,7 @@ export const ChatMessageList = ({
                 style={
                   isLastMessage && isAssistant && messages.length > 2
                     ? {
-                        height: `calc(100vh - ${prevMessageHeight + 306}px)`,
+                        height: `calc(70vh - ${prevMessageHeight}px)`,
                       }
                     : {}
                 }
@@ -409,10 +395,19 @@ export const ChatMessageList = ({
                         content={msg.content}
                         reason_content={msg.reason_content}
                         messageId={index}
+                        isAiThinking={isAiThinking}
+                        timestamp={msg.timestamp}
+                        isExpanded={msg.isExpanded}
+                        relatedQuestions={msg?.relatedQuestions || []}
+                        isAssistant={isAssistant}
+                        isRelatedQuestions={msg?.isRelatedQuestions || false}
+                        isShowRelatedQuestions={
+                          msg?.isShowRelatedQuestions || false
+                        }
                       />
 
                       {isAssistant && (
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start mt-2">
                           <div className="flex gap-2">
                             <button
                               onClick={() => onCopy(msg.content, index)}
@@ -431,11 +426,21 @@ export const ChatMessageList = ({
                     </div>
                   </div>
                 </div>
+                {isLastMessage &&
+                  isAssistant &&
+                  msg?.isShowRelatedQuestions && (
+                    <AnswerQuestion
+                      relatedQuestions={msg?.relatedQuestions || []}
+                      isRelatedQuestions={msg?.isRelatedQuestions || false}
+                      isShowRelatedQuestions={
+                        msg?.isShowRelatedQuestions || false
+                      }
+                      onQuestionClick={onQuestionClick}
+                    />
+                  )}
               </div>
             );
           })}
-
-          {isAiThinking && renderThinkingState()}
         </div>
       )}
       <div ref={messagesEndRef} style={{ height: "1px" }} />

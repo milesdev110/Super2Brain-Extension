@@ -1,9 +1,15 @@
 import { X, Wallet, AlertCircle } from "lucide-react";
 import { QRCodeImage } from "../settingPage/modules/qrcode";
 
-const UnenoughBalance = ({ isShowModal, setIsShowModal }) => {
+const UnenoughBalance = ({
+  isShowModal,
+  setIsShowModal,
+  isAddPoint,
+  setIsAddPoint,
+}) => {
   const handleCloseModal = () => {
     setIsShowModal(false);
+    setIsAddPoint(false);
   };
 
   return (
@@ -21,11 +27,15 @@ const UnenoughBalance = ({ isShowModal, setIsShowModal }) => {
           >
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-50 rounded-lg">
-                  <AlertCircle className="w-6 h-6 text-red-500" />
+                <div className={`p-2 ${isAddPoint ? 'bg-indigo-50' : 'bg-red-50'} rounded-lg`}>
+                  {isAddPoint ? (
+                    <Wallet className="w-6 h-6 text-blue-500" />
+                  ) : (
+                    <AlertCircle className="w-6 h-6 text-red-500" />
+                  )}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800">
-                  余额不足
+                  {isAddPoint ? "充值积分" : "余额不足"}
                 </h3>
               </div>
               <button
@@ -41,7 +51,9 @@ const UnenoughBalance = ({ isShowModal, setIsShowModal }) => {
                 <Wallet className="w-5 h-5 text-gray-400 mt-1" />
                 <div>
                   <p className="text-gray-600 leading-relaxed">
-                    您目前的账户余额不足使用该模式，请切换模型或者联系管理员充值
+                    {isAddPoint
+                      ? "想要更多积分，请联系管理员进行充值"
+                      : "您目前的账户余额不足，请联系管理员充值"}
                   </p>
                   <div className="mt-4 flex justify-center">
                     <img

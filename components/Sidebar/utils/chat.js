@@ -106,8 +106,4 @@ export const fetchUrlContent = (content, userInput, model = "gpt-4o-mini") =>
   fetchData([buildSystemPrompt(), { role: "user", content }], userInput, model);
 
 export const fetchCriticalAnalysis = (content, userInput, model = "gpt-4o") =>
-  fetchData(
-    [buildCriticalPrompt(), buildUserPrompt(content)],
-    userInput,
-    model
-  );
+  fetchData([buildCriticalPrompt(), buildUserPrompt(content)], userInput, model);

@@ -23,6 +23,7 @@ const ActivateTabChatPanel = ({
   setActivatePage,
   currentUrlRelatedQuestions,
   currentUrlLoading,
+  thinkingTimeMap,
 }) => {
   const handleQuestionClick = useCallback((question, reason_content) => {
     if (!question) return;
@@ -58,6 +59,7 @@ const ActivateTabChatPanel = ({
           onCopy={onCopy}
           onRetry={onRetry}
           onQuestionClick={handleQuestionClick}
+          thinkingTimeMap={thinkingTimeMap}
         />
       </div>
       <div className="p-4 bg-white w-full">
@@ -76,6 +78,7 @@ const ActivateTabChatPanel = ({
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
           isAiThinking={isAiThinking}
+          messages={getCurrentUrlMessages()}
         />
       </div>
     </div>

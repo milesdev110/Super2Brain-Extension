@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { Logo } from "./logo";
 import { useCountdown } from "../../../../Welcome/hooks/useCountdown";
 import { getCode, login } from "../../../../Welcome/service/login";
-import { saveUserInput } from "../../../../../public/storage";
+import { saveUserInput, setTokenTime } from "../../../../../public/storage";
 
 const tiltShakeAnimation = `@keyframes tilt-shake {
   0% { transform: rotate(0deg); }
@@ -73,6 +73,7 @@ const Login = ({ setUserInput }) => {
         if (data && data.access_token) {
           setUserInput(data.access_token);
           await saveUserInput(data.access_token);
+          await setTokenTime(Date.now());
         } else {
           throw new Error("登录返回数据格式错误");
         }

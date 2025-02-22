@@ -1,8 +1,8 @@
 import { Send, Brain } from "lucide-react";
 import { Tooltip } from "react-tooltip";
-import { ModelSelector2 } from "../../common/modelSelect2";
+import { ModelSelector } from "../../common/modelSelect";
 import { useState } from "react";
-
+import { ModelSelector2 } from "../../common/modelSelect2";
 const InputArea = ({
   query,
   setQuery,
@@ -12,12 +12,16 @@ const InputArea = ({
   handleSendMessage,
   selectedModel,
   setSelectedModel,
+  selectedModelProvider,
+  setSelectedModelProvider,
+  setActivatePage,
+  setSelectedModelIsSupportsImage,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
     <>
-      <div className="flex items-center justify-between px-2 mb-2">
+      <div className="flex items-center justify-between px-2 mb-4">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
             <Brain className="w-4 h-4 text-indigo-500" />
@@ -32,9 +36,7 @@ const InputArea = ({
               onChange={(e) => setMaxDepth(parseInt(e.target.value))}
               className="w-24 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <span className="text-xs text-gray-500 min-w-[20px]">
-              {maxDepth}
-            </span>
+            <span className="text-xs text-gray-500 min-w-[20px]">{maxDepth}</span>
           </div>
         </div>
       </div>
@@ -47,11 +49,7 @@ const InputArea = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey &&
-              !e.nativeEvent.isComposing
-            ) {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               handleSendMessage();
             }
@@ -61,17 +59,21 @@ const InputArea = ({
         placeholder:text-gray-400 sm:text-sm/6"
           placeholder="请输入您的问题"
         />
-        <div className="flex items-center justify-between px-2 py-1">
-          <ModelSelector2
-            useInput={true}
-            isOpen={dropdownOpen}
-            setIsOpen={setDropdownOpen}
-            selectedModel={selectedModel}
-            setSelectedModel={setSelectedModel}
-            selectedModelProvider="shareAI"
-            setSelectedModelProvider={() => {}}
-            setSelectedModelIsSupportsImage={() => {}}
-          />
+        <div className="flex items-center justify-between px-2 py-1 flex-nowrap">
+          <div className="flex gap-2">
+            <ModelSelector
+              useInput={true}
+              isOpen={dropdownOpen}
+              setIsOpen={setDropdownOpen}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              selectedModelProvider={selectedModelProvider}
+              setSelectedModelProvider={setSelectedModelProvider}
+              setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+              setActivatePage={setActivatePage}
+            />
+            <ModelSelector2 useInput={true} />
+          </div>
           <div className="flex gap-2">
             <button
               disabled={!query.trim() || isLoading}
@@ -88,11 +90,7 @@ const InputArea = ({
             >
               <Send className="w-4 h-4" />
             </button>
-            <Tooltip
-              style={{ borderRadius: "8px" }}
-              anchorSelect=".button-tag-send"
-              place="top"
-            >
+            <Tooltip style={{ borderRadius: "8px" }} anchorSelect=".button-tag-send" place="top">
               发送
             </Tooltip>
           </div>

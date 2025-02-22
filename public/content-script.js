@@ -235,24 +235,37 @@ function createScreenshotUI() {
   const cancelButton = document.createElement("button");
   cancelButton.textContent = "取消";
   cancelButton.style.cssText = `
-    padding: 4px 12px;
+    padding: 6px 16px;
     background: #ffffff;
-    color: #666;
+    color: #333333;
     border: 1px solid #d9d9d9;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    margin-right: 4px;
+    margin-right: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    &:hover {
+        background: #f5f5f5;
+        border-color: #c4c4c4;
+    }
   `;
 
   const confirmButton = document.createElement("button");
   confirmButton.textContent = "确定";
   confirmButton.style.cssText = `
-    padding: 4px 12px;
+    padding: 6px 16px;
     background: #1890ff;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(24,144,255,0.2);
+    &:hover {
+        background: #40a9ff;
+    }
   `;
 
   buttonContainer.appendChild(cancelButton);

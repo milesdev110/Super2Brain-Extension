@@ -22,6 +22,7 @@ export const TextareaRef = ({
   setSelectedModelIsSupportsImage,
   setActivatePage,
   pageContent,
+  messages,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -203,6 +204,8 @@ export const TextareaRef = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
             placeholder="请输入您的问题..."
             rows={4}
             className="block w-full rounded-md bg-white px-3 py-1.5 text-base 
@@ -210,19 +213,39 @@ export const TextareaRef = ({
               placeholder:text-gray-400 sm:text-sm/6"
           />
           <div className="flex items-center justify-between px-2 py-1">
-            <ModelSelector
-              setActivatePage={setActivatePage}
-              useInput={useInput}
-              selectedModelProvider={selectedModelProvider}
-              selectedModelIsSupportsImage={selectedModelIsSupportsImage}
-              setSelectedModelProvider={setSelectedModelProvider}
-              setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
-              selectedModel={selectedModel}
-              setSelectedModel={setSelectedModel}
-              setScreenshotData={setScreenshotData}
-            />
+            {messages.length === 0 ? (
+              <ModelSelector
+                messages={messages}
+                setActivatePage={setActivatePage}
+                useInput={useInput}
+                selectedModelProvider={selectedModelProvider}
+                selectedModelIsSupportsImage={selectedModelIsSupportsImage}
+                setSelectedModelProvider={setSelectedModelProvider}
+                setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                selectedModel={selectedModel}
+                setSelectedModel={setSelectedModel}
+                setScreenshotData={setScreenshotData}
+              />
+            ) : (
+              <div className="invisible">
+                <ModelSelector
+                  messages={messages}
+                  setActivatePage={setActivatePage}
+                  useInput={useInput}
+                  selectedModelProvider={selectedModelProvider}
+                  selectedModelIsSupportsImage={selectedModelIsSupportsImage}
+                  setSelectedModelProvider={setSelectedModelProvider}
+                  setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                  isOpen={isOpen}
+                  setIsOpen={setIsOpen}
+                  selectedModel={selectedModel}
+                  setSelectedModel={setSelectedModel}
+                  setScreenshotData={setScreenshotData}
+                />
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSubmit}

@@ -6,7 +6,7 @@ const useFetchPointCost = () => {
   useEffect(() => {
     const fetchPointCosts = async () => {
       const response = await fetch(
-        " https://extension-update.oss-cn-beijing.aliyuncs.com/pointPost.json"
+        "https://extension-update.oss-cn-beijing.aliyuncs.com/pointPost.json"
       );
       const data = await response.json();
       setPointCosts(data);

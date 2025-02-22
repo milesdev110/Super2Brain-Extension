@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { Logo } from "../modules/logo";
 import { useCountdown } from "../hooks/useCountdown";
 import { getCode, login } from "../service/login";
-import { saveUserInput } from "../../../public/storage";
+import { saveUserInput, setTokenTime } from "../../../public/storage";
 
 const tiltShakeAnimation = `@keyframes tilt-shake {
   0% { transform: rotate(0deg); }
@@ -69,9 +69,9 @@ export default function First({ onNext, apiKey, setApiKey }) {
         setError("");
         setCodeError("");
         const data = await login({ email, code });
-        console.log(data);
         if (data && data.access_token) {
           await saveUserInput(data.access_token);
+          await setTokenTime(Date.now());
           setApiKey(data.access_token);
           onNext();
         } else {

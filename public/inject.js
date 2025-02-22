@@ -105,114 +105,6 @@ const loadingButtonContent = `
       </div>
     `;
     document.body.appendChild(alertContainer);
-
-    function showAlert(message) {
-      const alertContainer = document.getElementById("custom-alert-container");
-      const alertMessage = document.getElementById("custom-alert-message");
-      alertMessage.innerHTML = message;
-      alertContainer.style.display = "flex";
-
-      const alertOkButton = document.getElementById("custom-alert-ok");
-      alertOkButton.onclick = function () {
-        alertContainer.style.display = "none";
-      };
-    }
-
-    function updateButtonStyle(button) {
-      if (button.disabled) {
-        button.style.opacity = "0.5";
-        button.style.cursor = "not-allowed";
-      } else {
-        button.style.opacity = "1";
-        button.style.cursor = "pointer";
-      }
-    }
-
-    async function processContent() {
-      try {
-        button.disabled = true;
-
-        const markdown = await extractMarkdown(window.location.href);
-
-        if (!markdown || markdown.trim().length === 0) {
-          showAlert(
-            "无法读取该网页内容<br>原因：<br>• 页面未加载完成<br>• 网页限制"
-          );
-          return;
-        }
-
-        const taskListResult = await new Promise((resolve) => {
-          chrome.storage.local.get(["taskList"], resolve);
-        });
-
-        const taskList = taskListResult.taskList || [];
-        const currentUrl = window.location.href;
-
-        if (taskList.some((task) => task.url === currentUrl)) {
-          showAlert("该网页已导入成功，请勿重复导入！");
-          return;
-        }
-
-        const response = await new Promise((resolve, reject) => {
-          chrome.runtime.sendMessage(
-            {
-              action: "sendURL",
-              data: {
-                url: currentUrl,
-                markdown: markdown,
-                title: document.title,
-              },
-            },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-              } else {
-                resolve(response);
-              }
-            }
-          );
-        });
-
-        if (response?.ok) {
-          showAlert("导入成功，该网页已加入任务队列！");
-        } else {
-          throw new Error("发送失败");
-        }
-      } catch (error) {
-        console.error("Error processing page:", error);
-        showAlert(
-          "内容提取失败：<br>• 请检查网络连接<br>• 页面可能没有可提取的内容<br>• 页面可能受到访问限制"
-        );
-      } finally {
-        button.innerHTML = svgButtonContent;
-        button.disabled = false;
-      }
-    }
-
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      if (message.type === "SAVE_CONTENT") {
-        processContent();
-        return true;
-      }
-    });
-
-    const updateFloatingDirection = () => {
-      const button = document.querySelector(".flot-btn");
-      if (!button) return;
-
-      const buttonRect = button.getBoundingClientRect();
-      const topSpace = buttonRect.top;
-      const threshold = 100;
-
-      button.classList.toggle("float-down", topSpace < threshold);
-      button.classList.toggle("float-up", topSpace >= threshold);
-    };
-
-    updateFloatingDirection();
-
-    ["scroll", "resize"].forEach((event) =>
-      window.addEventListener(event, updateFloatingDirection)
-    );
   };
 
   if (
@@ -221,7 +113,6 @@ const loadingButtonContent = `
   ) {
     initializeExtension();
   } else {
-    // 否则等待 DOM 加载完成
     document.addEventListener("DOMContentLoaded", initializeExtension);
   }
 })();
@@ -272,12 +163,7 @@ async function extractMarkdown(baseUrl) {
         name: "absolute-image-paths",
         filter: "img",
         replacement: (content, node) => {
-          const src = node.getAttribute("src");
-          if (src) {
-            const absoluteSrc = new URL(src, baseUrl).href;
-            return `![${node.getAttribute("alt") || ""}](${absoluteSrc})`;
-          }
-          return "";
+          return ``;
         },
       },
     ];
@@ -305,17 +191,6 @@ async function extractMarkdown(baseUrl) {
     throw new Error(`提取失败: ${error.message}`);
   }
 }
-
-window.addEventListener("message", (event) => {
-  if (event.source !== window) {
-    return;
-  }
-  const user = event.data.user;
-  const hostname = window.location.hostname;
-  if (user && (hostname === "localhost" || hostname === "x.super2brain.com")) {
-    chrome.storage.local.set({ user }, () => {});
-  }
-});
 
 function getUserInput() {
   return new Promise((resolve, reject) => {

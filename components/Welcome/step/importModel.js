@@ -178,7 +178,6 @@ export default function SecondRight({
       const titles = await getItem("pageTitles");
       if (Array.isArray(titles)) {
         setPageTitles(titles);
-        console.log("更新标题:", titles);
       }
     } catch (error) {
       console.error("获取页面标题失败:", error);

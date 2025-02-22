@@ -1,3 +1,80 @@
+import { config } from "../../config/index";
+import { getUserInput } from "../../../public/storage.js";
+
+const fetchRelatedQuestions = async (messages, fullResponse) => {
+  const apiKey = await getUserInput();
+  console.log(messages);
+  const response = await fetch(`${config.baseUrl}/text/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      stream: true,
+      messages: [
+        {
+          role: "system",
+          content:
+            "你是一个帮助生成相关问题的AI助手。请基于用户的上一个问题和回答，生成3个后续问题。",
+        },
+        {
+          role: "user",
+          content: `基于以下问题和回答，生成3个用户可能会继续追问的后续问题：
+          
+        原问题：${
+          messages[messages.length - 2].content?.text || messages[messages.length - 2].content
+        }
+        回答：${fullResponse}
+
+        要求：
+        1. 问题要对原问题进行深入探讨
+        2. 寻求更多相关细节
+        3. 探索相关但不同的方面
+
+        请直接返回3个问题，每个问题占一行。`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("获取相关问题失败");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullContent = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    const lines = chunk.split("\n").filter((line) => line.trim());
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        const data = line.slice(6);
+        if (data === "[DONE]") continue;
+
+        try {
+          const parsed = JSON.parse(data);
+          fullContent += parsed.choices[0]?.delta?.content || "";
+        } catch (e) {
+          console.error("解析流式数据失败:", e);
+        }
+      }
+    }
+  }
+
+  return fullContent
+    .split("\n")
+    .map((q) => q.trim())
+    .filter((q) => q.length > 0);
+};
+
 const MessageRole = {
   SYSTEM: "system",
   USER: "user",
@@ -76,8 +153,7 @@ const modelAdapters = {
       usage: {
         prompt_tokens: response.usage.input_tokens,
         completion_tokens: response.usage.output_tokens,
-        total_tokens:
-          response.usage.input_tokens + response.usage.output_tokens,
+        total_tokens: response.usage.input_tokens + response.usage.output_tokens,
       },
     }),
   },
@@ -97,21 +173,17 @@ const modelAdapters = {
     }),
   },
   ollama: {
-    baseUrl: "/api/chat",
+    baseUrl: "/v1/chat/completions",
     transformRequest: (unifiedRequest) => ({
       model: unifiedRequest.model,
-      messages: unifiedRequest.messages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      options: {
-        temperature: unifiedRequest.temperature ?? 0.7,
-      },
+      messages: unifiedRequest.messages,
+      temperature: unifiedRequest.temperature ?? 0.7,
+      max_tokens: unifiedRequest.maxTokens,
       stream: true,
     }),
     transformResponse: (response) => ({
-      content: response.message.content,
-      usage: {
+      content: response.choices[0].message.content,
+      usage: response.usage || {
         prompt_tokens: 0,
         completion_tokens: 0,
         total_tokens: 0,
@@ -124,9 +196,7 @@ const modelAdapters = {
       model: unifiedRequest.model,
       messages: unifiedRequest.messages.map((msg) => ({
         role: msg.role,
-        content: Array.isArray(msg.content)
-          ? msg.content
-          : [{ type: "text", text: msg.content }],
+        content: Array.isArray(msg.content) ? msg.content : [{ type: "text", text: msg.content }],
       })),
       temperature: unifiedRequest.temperature ?? 0.7,
       max_tokens: unifiedRequest.maxTokens,
@@ -177,24 +247,16 @@ const MODEL_MAPPING = {
   "claude-3.5-sonnet": "claude-3-5-sonnet-20241022",
 };
 
-const removeTrailingV1 = (url) =>
-  url.endsWith("/v1") ? url.slice(0, -3) : url;
+const removeTrailingV1 = (url) => (url.endsWith("/v1") ? url.slice(0, -3) : url);
 
-const callAI = async ({
-  provider,
-  baseUrl,
-  apiKey,
-  model,
-  messages,
-  options = {},
-}) => {
+const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {} }) => {
   const cleanBaseUrl = removeTrailingV1(baseUrl);
   const adapter = modelAdapters[provider];
   let mappedModel = MODEL_MAPPING[model.toLowerCase()] || model;
   if (provider === "deepseek" && model === "deepseek-v3") {
     mappedModel = "deepseek-chat";
   } else if (provider === "deepseek" && model === "deepseek-r1") {
-    mappedModel = "deepseek-r1";
+    mappedModel = "deepseek-reasoner";
   }
   if (!adapter) {
     throw new Error(`不支持的 AI 提供商: ${provider}`);
@@ -224,9 +286,7 @@ const callAI = async ({
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `HTTP error! status: ${response.status}, body: ${errorText}`
-      );
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
     }
 
     const reader = response.body.getReader();
@@ -234,6 +294,7 @@ const callAI = async ({
     let fullContent = "";
     let fullReasoningContent = "";
     let lastChunkData = null;
+    let flag = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -256,25 +317,68 @@ const callAI = async ({
               provider === "openai" ||
               provider === "deepseek" ||
               provider === "super2brain" ||
-              provider === "lmstudio"
+              provider === "lmstudio" ||
+              provider === "ollama"
             ) {
-              fullContent += chunkData.choices[0]?.delta?.content || "";
-              if (chunkData.choices[0]?.delta?.reasoning_content) {
-                fullReasoningContent +=
-                  chunkData.choices[0].delta.reasoning_content;
+              if (chunkData.choices[0]?.delta) {
+                console.log(chunkData.choices[0].delta?.content);
+                if (chunkData.choices[0].delta?.content.includes("<think>")) flag = true;
+                if (chunkData.choices[0].delta?.content.includes("</think>")) flag = false;
+
+                if (chunkData.choices[0]?.delta?.reasoning_content) {
+                  fullReasoningContent += chunkData.choices[0].delta.reasoning_content;
+                }
+                if (flag) {
+                  fullReasoningContent += chunkData.choices[0]?.delta?.content || "";
+                } else {
+                  fullContent += chunkData.choices[0]?.delta?.content || "";
+                }
               }
             } else if (provider === "claude") {
               fullContent += chunkData.delta?.text || "";
-            } else if (provider === "ollama") {
-              fullContent += chunkData.message?.content || "";
             } else {
               fullContent += chunkData.message?.content || "";
+            }
+            if (
+              chunkData.choices[0]?.delta?.reason_content === "undefined" ||
+              chunkData.choices[0]?.delta?.reason_content === null
+            ) {
+              fullReasoningContent = "";
+            }
+            if (options.onProgress) {
+              if (flag) {
+                options.onProgress({
+                  state: 1,
+                  response: {
+                    content: "",
+                    reasoning_content: chunkData.choices[0]?.delta?.content || "",
+                  },
+                });
+              } else {
+                options.onProgress({
+                  state: 1,
+                  response: {
+                    content: chunkData.choices[0]?.delta?.content || "",
+                    reasoning_content:
+                      chunkData.choices[0]?.delta?.reasoning_content === "undefined"
+                        ? null
+                        : chunkData.choices[0]?.delta?.reasoning_content || "",
+                  },
+                });
+              }
             }
           } catch (e) {
             console.error("解析流式数据失败:", e);
           }
         }
       }
+    }
+
+    const thinkRegex = /<think>(.*?)<\/think>/gs;
+    const thinkMatches = [...fullContent.matchAll(thinkRegex)];
+    if (thinkMatches.length > 0) {
+      fullContent = fullContent.replace(thinkRegex, "");
+      fullReasoningContent = thinkMatches.map((match) => match[1]).join("\n");
     }
 
     // 构造与原格式相同的响应
@@ -295,7 +399,16 @@ const callAI = async ({
         total_tokens: 0,
       },
     };
-
+    options?.onProgress({
+      state: 3,
+      isRelatedQuestions: true,
+    });
+    const relatedQuestions = await fetchRelatedQuestions(messages, fullContent);
+    options.onProgress({
+      state: 2,
+      relatedQuestions,
+      isRelatedQuestions: false,
+    });
     return adapter.transformResponse(simulatedResponse);
   } catch (error) {
     if (error.name === "TimeoutError") {

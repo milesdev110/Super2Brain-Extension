@@ -1,10 +1,5 @@
-import {
-  AI_MODELS,
-  deepseekModel,
-  claudeModel,
-  openaiModel,
-} from "../../config/models";
-import { Bot, ChevronDown, Settings } from "lucide-react";
+import { AI_MODELS, deepseekModel, claudeModel, openaiModel } from "../../config/models";
+import { Bot, ChevronDown, Settings, Image, Scissors } from "lucide-react";
 import {
   getDeepSeekApiKey,
   getClaudeApiKey,
@@ -17,6 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { getOllamaModels, getCustomModels } from "../../../../public/storage";
 
 const ModelSelector = ({
+  messages,
   setActivatePage,
   useInput,
   isOpen,
@@ -93,9 +89,7 @@ const ModelSelector = ({
 
       setModelList(newModelList);
 
-      const areCustomModelsDisabled = newModelList.every(
-        (model) => model.disabled
-      );
+      const areCustomModelsDisabled = newModelList.every((model) => model.disabled);
       setCustomModelsDisabled(areCustomModelsDisabled);
     };
 
@@ -114,7 +108,7 @@ const ModelSelector = ({
     <div className="relative" ref={dropdownRef}>
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-xl shadow-lg z-10 w-[200px] overflow-hidden">
-          <div className="py-2">
+          <div className="py-2 max-h-[800px] overflow-y-auto">
             {/* ShareAI 模型组 */}
             <ModelGroup
               title="By shareAI"
@@ -128,9 +122,7 @@ const ModelSelector = ({
             {/* DeepSeek 模型组 */}
             <ModelGroup
               title="By DeepSeek"
-              models={modelList.filter(
-                (model) => model.provider === "deepseek"
-              )}
+              models={modelList.filter((model) => model.provider === "deepseek")}
               selectedModel={selectedModel}
               selectedModelProvider={selectedModelProvider}
               onModelSelect={handleModelSelect}
@@ -166,9 +158,7 @@ const ModelSelector = ({
             {/* LMStudio 模型组 */}
             <ModelGroup
               title="By LMStudio"
-              models={modelList.filter(
-                (model) => model.provider === "lmstudio"
-              )}
+              models={modelList.filter((model) => model.provider === "lmstudio")}
               selectedModel={selectedModel}
               selectedModelProvider={selectedModelProvider}
               onModelSelect={handleModelSelect}
@@ -189,18 +179,24 @@ const ModelSelector = ({
       )}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="mt-1 ml-1 flex items-center px-3 py-2
-          cursor-pointer w-[200px] rounded-xl 
-           text-white bg-indigo-500 hover:bg-indigo-400
+        style={{
+          maxWidth: "130px",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "clip",
+        }}
+        className={`mt-1 ml-1 flex items-center px-3 py-2
+          rounded-xl 
           border border-indigo-300
-          active:scale-[0.98] transition-all duration-200
-          shadow-sm hover:shadow-md"
+          transition-all duration-200
+          shadow-sm
+          ${"cursor-pointer bg-indigo-500 hover:bg-indigo-400 hover:shadow-md active:scale-[0.98]"}`}
       >
         <Bot className="w-4 h-4 text-white" />
-        <span className="text-sm text-white ml-2 font-medium">
+        <span className="text-sm text-white ml-2 font-medium overflow-hidden whitespace-nowrap flex-1">
           {selectedModel}
         </span>
-        <ChevronDown className="w-4 h-4 ml-auto text-white/80" />
+        <ChevronDown className="w-4 h-4 text-white/80 mr-2" />
       </div>
     </div>
   );
@@ -216,15 +212,12 @@ const ModelGroup = ({
   customModelsDisabled = false,
   onConfigureClick,
 }) => {
-  // 过滤出未禁用的模型
   const enabledModels = models.filter((model) => !model.disabled);
-
-  // 如果没有启用的模型且不是自定义模型组，则不显示整个组
   if (enabledModels.length === 0 && !customModelsDisabled) return null;
 
   return (
     <>
-      <div className="px-4 py-2 flex items-center">
+      <div className="px-4 py-1 flex items-center">
         <span className="text-gray-500 text-[11px] font-medium tracking-wider flex items-center">
           {title}
         </span>
@@ -232,7 +225,7 @@ const ModelGroup = ({
 
       {customModelsDisabled ? (
         <div
-          className="px-4 py-2 text-sm transition-all duration-200
+          className="px-4 py-1 text-sm transition-all duration-200
                     hover:bg-indigo-50 flex items-center justify-between
                     cursor-pointer text-indigo-600 group"
           onClick={onConfigureClick}
@@ -248,26 +241,29 @@ const ModelGroup = ({
         enabledModels.map((model) => (
           <div
             key={model.id}
-            className={`px-4 py-2 text-sm transition-all duration-200
+            className={`px-4 py-2 text-sm transition-all duration-200 
                       hover:bg-indigo-50 flex items-center justify-between group
+                      ${!useInput ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
                       ${
-                        !useInput
-                          ? "cursor-not-allowed opacity-50"
-                          : "cursor-pointer"
-                      }
-                      ${
-                        selectedModel === model.id &&
-                        selectedModelProvider === model.provider
+                        selectedModel === model.id && selectedModelProvider === model.provider
                           ? "text-indigo-600 bg-indigo-50"
                           : "text-gray-600"
                       }`}
             onClick={() => onModelSelect(model)}
           >
-            <span className="group-hover:text-indigo-600 pl-4">{model.id}</span>
-            {selectedModel === model.id &&
-              selectedModelProvider === model.provider && (
-                <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+            <div className="group-hover:text-indigo-600 pl-4 flex items-center">
+              {model.supportsImage ? (
+                <>
+                  <Scissors className="w-3 h-3 transform -rotate-90 mr-1 -translate-x-4 text-indigo-600" />
+                  <span className="-ml-3">{model.id}</span>
+                </>
+              ) : (
+                <span>{model.id}</span>
               )}
+            </div>
+            {selectedModel === model.id && selectedModelProvider === model.provider && (
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+            )}
           </div>
         ))
       )}

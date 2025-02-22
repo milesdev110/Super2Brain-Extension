@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { marked } from "marked";
 import { Package } from "lucide-react";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 
 const PlaceHolder = () => {
   return (
@@ -41,21 +43,39 @@ const MarkdownRenderer = ({
     []
   );
 
-  const handleSaveWebPage = async () => {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
+
+  const processLatex = (content) => {
+    content = content.replace(/\\\[([\s\S]*?)\\\]/g, (match, tex) => {
+      try {
+        return katex.renderToString(tex.trim(), {
+          displayMode: true,
+          throwOnError: false,
+        });
+      } catch (err) {
+        console.error("LaTeX渲染错误:", err);
+        return match;
+      }
     });
 
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      type: "SAVE_CONTENT",
-    });
+    // 处理其他格式的公式
+    return content.replace(
+      /\$\$(.*?)\$\$|\$(.*?)\$|\/\[(.*?)\]/g,
+      (match, block, inline, bracket) => {
+        try {
+          const tex = block || inline || bracket;
+          const isBlock = !!block;
+          if (!tex) return match;
 
-    if (response?.received) {
-      return { success: true };
-    }
-
-    throw new Error("保存失败");
+          return katex.renderToString(tex.trim(), {
+            displayMode: isBlock,
+            throwOnError: false,
+          });
+        } catch (err) {
+          console.error("LaTeX渲染错误:", err);
+          return match;
+        }
+      }
+    );
   };
 
   const renderContent = () => {
@@ -67,30 +87,37 @@ const MarkdownRenderer = ({
       );
     }
 
+    const commonContentWrapper = (content) => (
+      <div className="prose prose-sm md:prose-base lg:prose-lg prose-slate mx-4 mt-4">
+        <div className="text-sm mb-2 flex justify-center">
+          <span className="text-indigo-700 rounded-lg py-1.5 px-3 text-center font-medium">
+            当前内容由AI生成，仅供参考
+          </span>
+        </div>
+        {content}
+      </div>
+    );
+
     if (currentUrlTab === "welcome") {
       return content ? (
-        <div className="prose prose-sm md:prose-base lg:prose-lg prose-slate mx-4 mt-4">
+        commonContentWrapper(
           <div
-            className="py-2 text-sm text-indigo-500 cursor-pointer hover:bg-indigo-600/10 hover:text-indigo-600 px-4 py-2 rounded-md mx-auto w-fit text-center transition-colors duration-200"
-            onClick={handleSaveWebPage}
-          >
-            觉得该网页不错？点击收藏到知识库
-          </div>
-          <div dangerouslySetInnerHTML={{ __html: marked(content) }} />
-        </div>
+            dangerouslySetInnerHTML={{ __html: marked(processLatex(content)) }}
+          />
+        )
       ) : (
         <PlaceHolder />
       );
     }
 
     return criticalAnalysis ? (
-      <div className="prose prose-sm md:prose-base lg:prose-lg prose-red mx-4">
+      commonContentWrapper(
         <div
           dangerouslySetInnerHTML={{
-            __html: marked(criticalAnalysis),
+            __html: marked(processLatex(criticalAnalysis)),
           }}
         />
-      </div>
+      )
     ) : (
       <PlaceHolder />
     );

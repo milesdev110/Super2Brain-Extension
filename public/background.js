@@ -1,28 +1,19 @@
+import { captureVisibleTab } from "./utils.js";
 import {
-  keepAlive,
-  splitArrayIntoChunks,
-  processSelectedBookmarks,
-  fetchPageContent,
-  sendToBackend,
-  captureVisibleTab,
-  captureFullPage,
-} from "./utils.js";
-import {
-  getItem,
-  setItem,
-  getUserInput,
-  incrementSuccessCount,
-  incrementFailedCount,
-  resetCounts,
   setLastUpdateCheck,
   getLastUpdateCheck,
   setVersion,
+  setZhihuCookies,
+  getZhihuCookies,
+  setXhsCookies,
+  getXhsCookies,
+  getUserInput,
+  removeXhsCookies,
+  removeZhihuCookies,
 } from "./storage.js";
 
-// 合并后的安装事件监听器
 chrome.runtime.onInstalled.addListener(async function (details) {
   if (details.reason === "install" || details.reason === "update") {
-    // 处理欢迎页面和版本更新
     if (details.reason === "install") {
       chrome.tabs.create({
         url: chrome.runtime.getURL("welcome.html"),
@@ -33,230 +24,12 @@ chrome.runtime.onInstalled.addListener(async function (details) {
     const manifest = chrome.runtime.getManifest();
     await setLastUpdateCheck(new Date().getTime());
     await setVersion(manifest.version);
-  }
-});
 
-async function initializeStorage() {
-  await setItem("successCount", 0);
-  await setItem("failedCount", 0);
-  await setItem("progress", 0);
-  await setItem("hasError", false);
-  await setItem("pageTitles", []);
-  await setItem("taskList", []);
-}
-
-chrome.runtime.onInstalled.addListener(async () => {
-  await initializeStorage();
-});
-
-async function processChunks(chunks, token) {
-  const MAX_CONCURRENT = 5;
-  const totalUrls = chunks.flat();
-  let successCount = 0;
-  let failedCount = 0;
-  let processedCount = 0;
-
-  const processQueue = async (urls, activePromises = new Set()) => {
-    if (urls.length === 0 && activePromises.size === 0) {
-      return;
-    }
-
-    while (activePromises.size < MAX_CONCURRENT && urls.length > 0) {
-      const item = urls.shift();
-      const url = typeof item === "object" ? item.url : item;
-
-      const promise = (async () => {
-        try {
-          // 检查URL是否已经存在
-          const taskList = (await getItem("taskList")) || [];
-          const isUrlExists = taskList.some((task) => task.url === url);
-
-          if (isUrlExists) {
-            console.log(`URL已存在，跳过处理: ${url}`);
-            processedCount++;
-            return;
-          }
-
-          const pageData = await fetchPageContent(url);
-          const result = await sendToBackend({ ...pageData, url }, token);
-
-          const newTask = {
-            url,
-            title: pageData.title,
-            status: result.data.status,
-            taskId: result.data.task_id,
-            createdAt: new Date().toISOString(),
-          };
-
-          const existingTitles = await getItem("pageTitles");
-
-          await Promise.all([
-            setItem("taskList", [newTask, ...(taskList || [])]),
-            setItem("pageTitles", [...(existingTitles || []), pageData.title]),
-          ]);
-
-          successCount++;
-          await setItem("successCount", successCount);
-        } catch (error) {
-          console.error(`处理 URL 失败: ${url}`, error);
-          failedCount++;
-          await setItem("failedCount", failedCount);
-        } finally {
-          processedCount++;
-          const progress = Math.round(
-            (processedCount / totalUrls.length) * 100
-          );
-          await setItem("progress", progress);
-          activePromises.delete(promise);
-        }
-      })();
-
-      activePromises.add(promise);
-    }
-
-    if (activePromises.size > 0) {
-      await Promise.race(activePromises);
-      // 递归处理队列
-      await processQueue(urls, activePromises);
-    }
-  };
-
-  try {
-    await processQueue(totalUrls);
-  } finally {
-    await Promise.all([
-      setItem("successCount", successCount),
-      setItem("failedCount", failedCount),
-      setItem("isProcessing", false),
-    ]);
-
-    chrome.runtime.sendMessage({
-      type: "BOOKMARKS_PROCESS_COMPLETE",
-      payload: { successCount, failedCount },
+    chrome.contextMenus.create({
+      id: "generateMindmap",
+      title: "生成当页思维导图",
+      contexts: ["page"],
     });
-  }
-}
-
-async function handleStartup() {
-  try {
-    const remainingChunks = await getItem("remainingChunks");
-    const token = await getUserInput();
-    if (!remainingChunks || !token || remainingChunks.length === 0) {
-      return;
-    }
-
-    await keepAlive(true);
-    await processChunks(remainingChunks, token);
-  } catch (error) {
-    console.error("Error during startup:", error);
-  } finally {
-    await keepAlive(false);
-  }
-}
-
-chrome.runtime.onStartup.addListener(() => {
-  handleStartup();
-});
-
-async function sendBookmarksInBatches(bookmarks, batchSize = 5) {
-  try {
-    const token = await getUserInput();
-    if (!token) {
-      throw new Error("Token not found in local storage.");
-    }
-
-    await keepAlive(true);
-
-    const chunks = splitArrayIntoChunks(bookmarks, batchSize);
-    await processChunks(chunks, token);
-  } catch (error) {
-    console.error("Error processing bookmarks:", error);
-  } finally {
-    await keepAlive(false);
-  }
-}
-
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.action === "processBookmarks") {
-    sendResponse({ status: "processing" });
-    (async () => {
-      try {
-        await keepAlive(true);
-        await setItem("successCount", 0);
-        await setItem("failedCount", 0);
-        await setItem("progress", 0);
-        await setItem("hasError", false);
-        await setItem("isProcessing", true);
-
-        // 保存新的总书签数
-        const simplifiedBookmarks = await processSelectedBookmarks(
-          request.items.bookmarks
-        );
-        await setItem("totalBookmarks", simplifiedBookmarks.length);
-
-        await sendBookmarksInBatches(simplifiedBookmarks, 5);
-      } catch (error) {
-        if (
-          error.message.includes("无法获取书签") ||
-          error.message.includes("用户未登录")
-        ) {
-          await setItem("hasError", true);
-        }
-        console.error("Error processing bookmarks:", error);
-        await setItem("isProcessing", false);
-      } finally {
-        await keepAlive(false);
-      }
-    })();
-    return true;
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "sendURL") {
-    Promise.resolve().then(async () => {
-      try {
-        const token = await getUserInput();
-        const { url, markdown, title } = message.data;
-
-        await keepAlive(true);
-        const endpoint = `https://s2bapi.zima.pet/common/tasks/content-note`;
-
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            url,
-            content: markdown,
-            title,
-          }),
-        });
-
-        const data = await response.json();
-
-        const newTask = {
-          url,
-          title,
-          status: data.data.status,
-          taskId: data.data.task_id,
-          createdAt: new Date().toISOString(),
-        };
-
-        const existingTaskList = (await getItem("taskList")) || [];
-        await setItem("taskList", [newTask, ...existingTaskList]);
-
-        sendResponse({ ok: true });
-      } catch (error) {
-        console.error("发送URL时出错:", error);
-        sendResponse({ ok: false });
-      } finally {
-        await keepAlive(false);
-      }
-    });
-    return true;
   }
 });
 
@@ -266,25 +39,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       enabled: true,
       path: "sidepanel.html",
     });
-
-    chrome.sidePanel.open({ windowId: sender.tab.windowId });
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "OPEN_MINDMAP") {
-    chrome.tabs.create({
-      url:
-        chrome.runtime.getURL("mindmap.html") +
-        `?prompt=${encodeURIComponent(message.payload.prompt)}` +
-        `&url=${encodeURIComponent(message.payload.url)}` +
-        `&title=${encodeURIComponent(message.payload.title)}`,
-    });
-  }
-});
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "OPEN_MIND_MAP") {
     chrome.sidePanel.open({ windowId: sender.tab.windowId });
   }
 });
@@ -363,6 +117,60 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+const analyzeImages = async (images) => {
+  const userInput = await getUserInput();
+  const tokenResponse = await fetch("https://s2bapi.zima.pet/ocr/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userInput}`,
+    },
+  });
+  const tokenData = await tokenResponse.json();
+  const accessToken = tokenData.data.access_token;
+
+  // 添加延迟函数
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const imageTexts = [];
+  for (const imageUrl of images) {
+    try {
+      await delay(500);
+
+      const response = await fetch(
+        "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `access_token=${accessToken}&url=${encodeURIComponent(
+            imageUrl
+          )}`,
+        }
+      );
+
+      const result = await response.json();
+
+      // 处理可能的错误响应
+      if (result.error_code) {
+        console.error(`OCR API 错误: ${result.error_msg}`);
+        continue;
+      }
+
+      const text =
+        result.words_result?.map((item) => item.words).join("\n") || "";
+      if (text) {
+        imageTexts.push(text);
+      }
+    } catch (error) {
+      console.error("OCR分析失败:", error);
+    }
+  }
+
+  return imageTexts.join("\n\n");
+};
+
 async function extractPageContent(url) {
   try {
     if (url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
@@ -374,12 +182,10 @@ async function extractPageContent(url) {
       active: false,
     });
 
-    // 创建一个超时 Promise
     const timeout = new Promise((_, reject) => {
       setTimeout(() => reject(new Error("页面加载超时(30秒)")), 30000);
     });
 
-    // 等待页面加载完成的 Promise
     const pageLoad = new Promise((resolve) => {
       chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
         if (tabId === tab.id && info.status === "complete") {
@@ -390,32 +196,80 @@ async function extractPageContent(url) {
     });
 
     try {
-      // 使用 Promise.race 竞争加载和超时
       await Promise.race([pageLoad, timeout]);
 
-      // 确保页面完全加载后再执行脚本
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const content = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: () => {
+        func: async () => {
+          const rules = [
+            {
+              name: "truncate-svg",
+              filter: "svg",
+              replacement: () => "",
+            },
+            {
+              name: "header",
+              filter: ["h1", "h2", "h3"],
+              replacement: (content, node) => {
+                const h1s = document.getElementsByTagName("h1");
+                const h2s = document.getElementsByTagName("h2");
+                const h3s = document.getElementsByTagName("h3");
+
+                if (h1s.length > 0 && node.tagName === "H1") {
+                  return `# ${content}\n\n`;
+                } else if (
+                  h1s.length === 0 &&
+                  h2s.length > 0 &&
+                  node.tagName === "H2"
+                ) {
+                  return `# ${content}\n\n`;
+                } else if (
+                  h1s.length === 0 &&
+                  h2s.length === 0 &&
+                  node.tagName === "H3"
+                ) {
+                  return `# ${content}\n\n`;
+                }
+                return `${content}\n\n`;
+              },
+            },
+            {
+              name: "absolute-image-paths",
+              filter: "img",
+              replacement: (content, node) => {
+                return ``;
+              },
+            },
+          ];
           try {
             const turndownService = new TurndownService();
+            rules.forEach((rule) => turndownService.addRule(rule.name, rule));
             const reader = new Readability(document.cloneNode(true), {
               charThreshold: 0,
               keepClasses: true,
               nbTopCandidates: 10,
+              keepImages: false,
+              keepLinks: false,
             });
             const article = reader.parse();
-            return turndownService.turndown(article?.content || "");
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            return {
+              content: turndownService.turndown(article?.content || ""),
+            };
           } catch (error) {
             console.error("Content extraction error:", error);
-            return "";
+            return { content: "" };
           }
         },
       });
+      const { content: extractedContent, imgList } = content[0]?.result || {
+        content: "",
+      };
 
-      return { url, content: content[0]?.result || "" };
+      return { url, content: extractedContent };
     } catch (error) {
       console.error(`页面处理失败: ${error.message}`);
       return { url, content: "" };
@@ -430,12 +284,10 @@ async function extractPageContent(url) {
 
 async function extractMultiplePages(urls) {
   try {
-    // 并行处理所有URL
     const results = await Promise.all(
       urls.map((url) => extractPageContent(url))
     );
 
-    // 过滤掉空内容的结果
     return results.filter((result) => result.content);
   } catch (error) {
     console.error("批量提取内容时出错:", error);
@@ -480,7 +332,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         const currentVersion = chrome.runtime.getManifest().version;
         const response = await fetch(
-          "https://extension-update.oss-cn-beijing.aliyuncs.com/version.json"
+          "https://extension-update.oss-cn-beijing.aliyuncs.com/versionZIp.json"
         );
 
         if (!response.ok) {
@@ -546,5 +398,292 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     })();
     return true;
+  }
+});
+
+const executePageScript = async (tabId) => {
+  const executeInPage = async () => {
+    const avatarElement = document.querySelector(".AppHeader-profileAvatar");
+    const hasUserAvatar = Boolean(avatarElement);
+    const userInfo = {
+      avatar: avatarElement?.src ?? "",
+    };
+    const xZse96 = document
+      .querySelector('meta[name="x-zse-96"]')
+      ?.getAttribute("content");
+
+    return {
+      success: true,
+      hasUserAvatar,
+      userInfo,
+      xZse96,
+    };
+  };
+
+  // 注入一个监听器来接收页面的日志
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    func: () => {
+      window.addEventListener("message", (event) => {
+        if (event.data.type === "ZHIHU_AUTH_LOG") {
+          chrome.runtime.sendMessage({
+            type: "BACKGROUND_LOG",
+            data: event.data.data,
+          });
+        }
+      });
+    },
+  });
+
+  // 监听来自页面的日志消息
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === "BACKGROUND_LOG") {
+      console.log(...message.data);
+    }
+  });
+
+  // 在后台脚本中获取 cookies
+  const getCookiesFromBackground = async () => {
+    const cookies = await chrome.cookies.getAll({ domain: ".zhihu.com" });
+    return cookies.reduce(
+      (acc, cookie) => ({
+        ...acc,
+        [cookie.name]: cookie.value,
+      }),
+      {}
+    );
+  };
+
+  // 获取执行结果
+  const pageResult = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: executeInPage,
+  });
+
+  // 使用后台 API 获取完整的 cookies
+  const cookies = await getCookiesFromBackground();
+
+  // 在后台验证登录状态
+  const loginStatus = {
+    hasAuthCookie: Boolean(cookies.z_c0),
+    hasUserInfo: pageResult[0].result.hasUserAvatar,
+    isLoggedIn: Boolean(cookies.z_c0) && pageResult[0].result.hasUserAvatar,
+  };
+
+  // 合并结果
+  const result = {
+    ...pageResult[0].result,
+    cookies,
+    loginStatus,
+  };
+
+  return result;
+};
+
+const waitForTabLoad = (tabId) =>
+  new Promise((resolve) => {
+    const listener = (id, info) => {
+      if (id === tabId && info.status === "complete") {
+        chrome.tabs.onUpdated.removeListener(listener);
+        setTimeout(resolve, 2000);
+      }
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+
+async function getZhihuAuthViaTab() {
+  let tab = null;
+  try {
+    tab = await chrome.tabs.create({
+      url: "https://www.zhihu.com",
+      active: false,
+    });
+
+    await waitForTabLoad(tab.id);
+    const result = await executePageScript(tab.id);
+
+    if (result.success) {
+      await setZhihuCookies(result.cookies);
+      return {
+        success: true,
+        isLoggedIn: result.loginStatus.isLoggedIn,
+      };
+    }
+    return {
+      success: false,
+      error: result.error,
+    };
+  } catch (error) {
+    await removeZhihuCookies();
+    return {
+      success: false,
+      error: error.message,
+      details: {
+        stack: error.stack,
+        tabInfo: tab,
+      },
+    };
+  } finally {
+    if (tab?.id) {
+      await chrome.tabs.remove(tab.id);
+    }
+  }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "getZhihuAuthViaTab") {
+    (async () => {
+      try {
+        const result = await getZhihuAuthViaTab();
+        sendResponse(result);
+      } catch (error) {
+        sendResponse({
+          success: false,
+          error: error.message,
+        });
+      }
+    })();
+    return true;
+  }
+});
+
+const executeXhsPageScript = async (tabId) => {
+  const executeInPage = async () => {
+    const searchInput = document.querySelector("#search-input");
+
+    const placeholder = searchInput?.placeholder;
+
+    if (placeholder === "登录探索更多内容") {
+      return {
+        success: false,
+        placeholder,
+      };
+    }
+
+    console.log("页面检查通过");
+    return {
+      success: true,
+      placeholder,
+    };
+  };
+
+  const getCookiesFromBackground = async () => {
+    const cookies = await chrome.cookies.getAll({ domain: ".xiaohongshu.com" });
+    return cookies.reduce(
+      (acc, cookie) => ({
+        ...acc,
+        [cookie.name]: cookie.value,
+      }),
+      {}
+    );
+  };
+
+  const pageResult = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: executeInPage,
+  });
+
+  const cookies = await getCookiesFromBackground();
+
+  const loginStatus = {
+    hasAuthCookie: Boolean(cookies.web_session),
+    hasUserInfo: pageResult[0].result.success,
+    isLoggedIn: Boolean(cookies.web_session) && pageResult[0].result.success,
+  };
+
+  return {
+    ...pageResult[0].result,
+    cookies,
+    loginStatus,
+  };
+};
+
+async function getXhsAuthViaTab() {
+  let tab = null;
+  try {
+    tab = await chrome.tabs.create({
+      url: "https://www.xiaohongshu.com/explore",
+      active: false,
+    });
+
+    await waitForTabLoad(tab.id);
+
+    const result = await executeXhsPageScript(tab.id);
+
+    if (result.success) {
+      return {
+        success: true,
+        isLoggedIn: result.loginStatus.isLoggedIn,
+        cookies: result.cookies,
+      };
+    }
+    return {
+      success: false,
+      error: result.error,
+    };
+  } catch (error) {
+    console.error("获取小红书认证时发生错误:", error);
+    return {
+      success: false,
+      error: error.message,
+      details: {
+        stack: error.stack,
+        tabInfo: tab,
+      },
+    };
+  } finally {
+    if (tab?.id) {
+      await chrome.tabs.remove(tab.id);
+    }
+  }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "getXhsAuthViaTab") {
+    (async () => {
+      try {
+        const result = await getXhsAuthViaTab();
+        if (result.success) {
+          await setXhsCookies(result.cookies);
+        }
+        sendResponse(result);
+      } catch (error) {
+        await removeXhsCookies();
+        sendResponse({
+          success: false,
+          error: error.message,
+        });
+      }
+    })();
+    return true;
+  }
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "generateMindmap") {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["content.js"],
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "openMindmap") {
+    chrome.tabs.create(
+      { url: chrome.runtime.getURL("markmap.html") },
+      (newTab) => {
+        chrome.storage.local.set({ mindmapTabId: newTab.id });
+      }
+    );
+  } else if (message.action === "updateMindmap") {
+    chrome.storage.local.get("mindmapTabId", (data) => {
+      if (data.mindmapTabId) {
+        chrome.tabs.sendMessage(data.mindmapTabId, {
+          action: "updateContent",
+          content: message.content,
+        });
+      }
+    });
   }
 });

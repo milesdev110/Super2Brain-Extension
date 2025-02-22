@@ -6,7 +6,9 @@ import { TypeWriter } from "./modules/TypeWriter";
 import { useState, useRef, useEffect } from "react";
 import { ActionButtons } from "./modules/actionButton";
 import { InputArea } from "./modules/inputArea";
-
+import katex from "katex";
+import "katex/dist/katex.min.css";
+import { getGetPageCount, setGetPageCount, removeGetPageCount } from "../../../../public/storage";
 const DeepSearch = ({
   query,
   setQuery,
@@ -23,6 +25,10 @@ const DeepSearch = ({
   setMessages,
   selectedModel,
   setSelectedModel,
+  selectedModelProvider,
+  setSelectedModelProvider,
+  setActivatePage,
+  setSelectedModelIsSupportsImage,
 }) => {
   const [showTextArea, setShowTextArea] = useState(true);
   const messagesEndRef = useRef(null);
@@ -31,6 +37,7 @@ const DeepSearch = ({
   const [startTime, setStartTime] = useState(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const timerRef = useRef(null);
+  const [pageCount, setPageCount] = useState(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,7 +45,12 @@ const DeepSearch = ({
 
   const scrollStatusToBottom = () => {
     if (statusBoxRef.current) {
-      statusBoxRef.current.scrollTop = statusBoxRef.current.scrollHeight;
+      requestAnimationFrame(() => {
+        statusBoxRef.current.scrollTo({
+          top: statusBoxRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      });
     }
   };
 
@@ -53,14 +65,9 @@ const DeepSearch = ({
   }, [currentStatus, messages]);
 
   useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].isComplete) {
-      setIsThinkingCollapsed(true);
-    }
-  }, [messages]);
-
-  useEffect(() => {
     if (Array.isArray(currentStatus) && !isThinkingCollapsed) {
-      scrollStatusToBottom();
+      const timer = setTimeout(scrollStatusToBottom, 100);
+      return () => clearTimeout(timer);
     }
   }, [currentStatus, isThinkingCollapsed]);
 
@@ -106,19 +113,15 @@ const DeepSearch = ({
     if (Array.isArray(currentStatus) && currentStatus.length > 0) {
       const scrollToStatusBottom = () => {
         if (statusBoxRef.current) {
-          const { scrollHeight, clientHeight } = statusBoxRef.current;
-          statusBoxRef.current.scrollTo({
-            top: scrollHeight - clientHeight,
-            behavior: "smooth",
-          });
+          statusBoxRef.current.scrollTop = statusBoxRef.current.scrollHeight;
         }
       };
-
-      requestAnimationFrame(scrollToStatusBottom);
+      scrollToStatusBottom();
     }
   }, [currentStatus]);
 
   const handleSendMessage = async () => {
+    removeGetPageCount();
     setIsDeepThingActive(true);
     if (!query.trim() || isLoading) return;
     const question = query;
@@ -127,14 +130,47 @@ const DeepSearch = ({
     await onSendMessage(question, getResponse);
   };
 
+  const processLatex = (content) => {
+    // 处理多行数学公式 \[ ... \]
+    content = content.replace(/\\\[([\s\S]*?)\\\]/g, (match, tex) => {
+      try {
+        return katex.renderToString(tex.trim(), {
+          displayMode: true,
+          throwOnError: false,
+        });
+      } catch (err) {
+        console.error("LaTeX渲染错误:", err);
+        return match;
+      }
+    });
+
+    // 处理其他格式的公式
+    return content.replace(
+      /\$\$(.*?)\$\$|\$(.*?)\$|\/\[(.*?)\]/g,
+      (match, block, inline, bracket) => {
+        try {
+          const tex = block || inline || bracket;
+          const isBlock = !!block;
+          if (!tex) return match;
+
+          return katex.renderToString(tex.trim(), {
+            displayMode: isBlock,
+            throwOnError: false,
+          });
+        } catch (err) {
+          console.error("LaTeX渲染错误:", err);
+          return match;
+        }
+      }
+    );
+  };
+
   const renderMessages = () =>
     messages?.map((msg, index) => (
       <div key={`message-${index}`} className="animate-fadeIn px-8 pt-4 pb-2">
         {msg.role === "user" ? (
           <div>
-            <p className="text-lg text-gray-900 font-medium leading-relaxed">
-              {msg.content}
-            </p>
+            <p className="text-lg text-gray-900 font-medium leading-relaxed">{msg.content}</p>
           </div>
         ) : (
           <div>
@@ -169,12 +205,9 @@ const DeepSearch = ({
                       </div>
                       <div className="mt-1 text-xs text-gray-400">
                         {currentStatus.length - 1} 条更多思考步骤...
-                        {needTime &&
-                          !messages[messages.length - 1]?.isComplete && (
-                            <span className="ml-2">
-                              · 预计需要 {needTime} 分钟
-                            </span>
-                          )}
+                        {needTime && !messages[messages.length - 1]?.isComplete && (
+                          <span className="ml-2">· 预计需要 {needTime} 分钟</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -198,11 +231,7 @@ const DeepSearch = ({
                                 text={status}
                                 isPulsing={idx === currentStatus.length - 1}
                                 onComplete={() => {}}
-                                className={
-                                  idx === currentStatus.length - 1
-                                    ? "animate-pulse"
-                                    : ""
-                                }
+                                className={idx === currentStatus.length - 1 ? "animate-pulse" : ""}
                               />
                               {idx === currentStatus.length - 1 && (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 flex-shrink-0 ml-1" />
@@ -219,39 +248,9 @@ const DeepSearch = ({
             {msg.isComplete && (
               <div className="px-1 relative group">
                 <div
-                  className="
-                    prose prose-gray max-w-none
-                    prose-h1:text-xl prose-h1:font-semibold prose-h1:mt-2 prose-h4:mb-2
-                    prose-h1:text-gray-900
-                    prose-h2:text-lg prose-h2:font-medium
-                    prose-h2:text-gray-900
-                    prose-h3:text-base prose-h3:font-medium
-                    prose-h3:text-gray-900
-                    prose-h4:text-sm prose-h4:font-medium 
-                    prose-h4:text-gray-900
-                    prose-p:text-gray-900 prose-p:leading-relaxed prose-p:my-4 
-                    prose-p:text-sm tracking-wide
-                    prose-strong:font-semibold prose-strong:text-gray-900
-                    prose-em:text-gray-900 prose-em:italic
-                    prose-a:text-blue-600 prose-a:no-underline prose-a:font-medium
-                    hover:prose-a:text-blue-700 hover:prose-a:underline 
-                    hover:prose-a:decoration-blue-500/30 hover:prose-a:decoration-2  
-                    prose-code:px-1.5 prose-code:py-0.5
-                    prose-code:rounded prose-code:text-xs prose-code:font-mono 
-                    prose-code:text-gray-900 prose-code:before:content-none 
-                    prose-code:after:content-none
-                    prose-pre:p-4 prose-pre:my-6 prose-pre:bg-gray-50
-                    prose-pre:rounded-lg prose-pre:shadow-sm prose-pre:border
-                    prose-pre:border-gray-200
-                    prose-ul:my-4 prose-ul:ml-2 prose-ul:list-disc 
-                    prose-ol:my-4 prose-ol:ml-2 prose-ol:list-decimal
-                    prose-li:my-2 prose-li:text-gray-900
-                    prose-li:marker:text-gray-600 prose-li:pl-1.5
-                    prose-blockquote:border-l-2 prose-blockquote:border-gray-300
-                    prose-blockquote:pl-2 prose-blockquote:my-4 
-                    prose-blockquote:italic prose-blockquote:text-gray-900"
+                  className="text-sm text-gray-700 break-words leading-relaxed prose"
                   dangerouslySetInnerHTML={{
-                    __html: marked.parse(msg.content, {
+                    __html: marked(processLatex(msg.content), {
                       breaks: true,
                       gfm: true,
                       headerIds: true,
@@ -286,13 +285,38 @@ const DeepSearch = ({
               )}
             </span>
             <span className="text-xs text-indigo-500/80 mt-1.5">
-              S2B正在操作你的浏览器进行深度深度思考，请不要关闭侧边栏
+              S2B正在操作你的浏览器进行深度搜索思考，请不要关闭侧边栏
             </span>
           </div>
         </div>
       </div>
     </div>
   );
+
+  useEffect(() => {
+    let pageCountTimer = null;
+
+    const fetchPageCount = async () => {
+      try {
+        const count = await getGetPageCount();
+        console.log("count", count);
+        setPageCount(count || 0);
+      } catch (error) {
+        console.error("获取页面计数失败:", error);
+      }
+    };
+
+    if (isLoading) {
+      fetchPageCount();
+      pageCountTimer = setInterval(fetchPageCount, 3000);
+    }
+
+    return () => {
+      if (pageCountTimer) {
+        clearInterval(pageCountTimer);
+      }
+    };
+  }, [isLoading]);
 
   return (
     <div className="w-full h-[calc(100vh-8px)] flex flex-col bg-white rounded-l-xl">
@@ -304,12 +328,12 @@ const DeepSearch = ({
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
-                    <span>S2B正在深度思考中...</span>
+                    <span>S2B正在深度思考中{pageCount > 0 && `(已阅读 ${pageCount} 个网页)`}</span>
                   </>
-                ) : hasError ? (
+                ) : messages[messages.length - 1]?.errorTitle ? (
                   <>
                     <XCircle className="w-5 h-5 text-red-500" />
-                    <span>思考过程出现错误</span>
+                    <span>{messages[messages.length - 1]?.errorTitle}</span>
                   </>
                 ) : (
                   <>
@@ -322,8 +346,8 @@ const DeepSearch = ({
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-        {!isDeepThingActive ? <PlaceHolder /> : renderMessages()}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+        {!isDeepThingActive ? <PlaceHolder setActivatePage={setActivatePage} /> : renderMessages()}
         <div ref={messagesEndRef} />
       </div>
       <div className="flex-shrink-0 p-2">
@@ -331,6 +355,9 @@ const DeepSearch = ({
           <div className="relative">
             {messages.length === 0 && (
               <InputArea
+                setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                selectedModelProvider={selectedModelProvider}
+                setSelectedModelProvider={setSelectedModelProvider}
                 selectedModel={selectedModel}
                 setSelectedModel={setSelectedModel}
                 query={query}
@@ -339,6 +366,7 @@ const DeepSearch = ({
                 setMaxDepth={setMaxDepth}
                 isLoading={isLoading}
                 handleSendMessage={handleSendMessage}
+                setActivatePage={setActivatePage}
               />
             )}
             {messages.length > 0 && (

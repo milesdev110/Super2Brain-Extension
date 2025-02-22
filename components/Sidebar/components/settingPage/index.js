@@ -25,6 +25,7 @@ const SettingsContent = ({
   handleChange,
   setIsShowModal,
   pointCosts,
+  setIsAddPoint,
 }) => {
   const [activeTab, setActiveTab] = useState("基础设置");
 
@@ -57,6 +58,7 @@ const SettingsContent = ({
               setWebPreview={setWebPreview}
               setIsShowModal={setIsShowModal}
               setActiveTab={setActiveTab}
+              setIsAddPoint={setIsAddPoint}
             />
           </div>
         )}
@@ -84,6 +86,7 @@ export const SettingPage = ({
   setUserInput,
   setIsShowModal,
   pointCosts,
+  setIsAddPoint,
 }) => {
   const [modelList, setModelList] = useState([]);
 
@@ -118,7 +121,6 @@ export const SettingPage = ({
   const loadModelConfigs = async () => {
     const [
       deepseekApiKey,
-      claudeApiKey,
       openaiApiKey,
       ollamaConfig,
       lmstudioConfig,
@@ -126,7 +128,6 @@ export const SettingPage = ({
       openaiUrl,
     ] = await Promise.all([
       getDeepSeekApiKey(),
-      getClaudeApiKey(),
       getOpenaiApiKey(),
       getOllamaConfig(),
       getLmstudioConfig(),
@@ -136,7 +137,6 @@ export const SettingPage = ({
 
     return {
       deepseek: { apiKey: deepseekApiKey },
-      claude: { apiKey: claudeApiKey },
       openai: { apiKey: openaiApiKey, url: openaiUrl },
       ollama: {
         url: ollamaConfig.url || "http://localhost:11434",
@@ -169,6 +169,7 @@ export const SettingPage = ({
           settings={settings}
           handleChange={handleChange}
           setIsShowModal={setIsShowModal}
+          setIsAddPoint={setIsAddPoint}
         />
       ) : (
         <Login setUserInput={setUserInput} />

@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo, use } from "react";
 import { SettingPage } from "./components/settingPage";
 import { ActivateBar } from "./components/common/activateBar";
 import {
@@ -36,9 +30,9 @@ import { useCheckBalance } from "./hooks/useCheckBalance";
 import { useTimeGussing } from "./hooks/useTimeGussing";
 import { createThingAgent } from "./components/networkPage/utils/thingAgent.js";
 import { useMessageHandler } from "./hooks/useMessageHandler";
-import { useNotesChat } from "./hooks/useNotesChat";
 import { config } from "../config/index";
 import { useFetchPointCost } from "./hooks/useFetchPointCost";
+import { useCheckLoginTime } from "./hooks/useCheckLoginTime";
 
 export default function Sidebar() {
   const [activatePage, setActivatePage] = useState(0);
@@ -49,6 +43,8 @@ export default function Sidebar() {
   const [pageSummary, setPageSummary] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [isAddPoint, setIsAddPoint] = useState(false);
+  const [networkSelectedModel, setNetworkSelectedModel] = useState("gpt-4o-mini");
 
   const [pageSystemMessage, setPageSystemMessage] = useState("");
 
@@ -66,68 +62,31 @@ export default function Sidebar() {
   const [currentUrlTab, setCurrentUrlTab] = useState("welcome");
   const [maxDepth, setMaxDepth] = useState(3);
   const { needTime, getNeedTime } = useTimeGussing();
-  const [searchEnabled, setSearchEnabled] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(true);
   const [isDeepThingActive, setIsDeepThingActive] = useState(false);
   const updateInfo = useCheckUpdate();
   const { settings, setSettings, fetchDeepSeekConfig } = useSeetingHandler();
-  const { checkBalance, isShowModal, setIsShowModal, calculateModelCalls } =
-    useCheckBalance();
+  const { checkBalance, isShowModal, setIsShowModal, calculateModelCalls } = useCheckBalance();
   const { pointCosts } = useFetchPointCost();
-  const deepSearchState = useDeepSearch(
-    userInput,
-    maxDepth,
-    getNeedTime,
-    calculateModelCalls,
-    checkBalance,
-    setIsShowModal
-  );
 
-  const [networkSelectedModel, setNetworkSelectedModel] =
-    useState("gpt-4o-mini");
-    
-  const thinkingAgent = useMemo(
-    () =>
-      createThingAgent({
-        apiKey: userInput,
-        baseURL: `${config.baseUrl}/text/v1`,
-        model: networkSelectedModel.toLowerCase(),
-      }),
-    [networkSelectedModel, userInput]
-  );
+  const [selectedModel, setSelectedModel] = useState("Deepseek-R1");
+  const [selectedModelProvider, setSelectedModelProvider] = useState("super2brain");
 
-  const {
-    message,
-    isLoading,
-    handleSubmit: handleNetworkSubmit,
-    setMessage,
-  } = useMessageHandler(thinkingAgent, networkSelectedModel, userInput, searchEnabled);
-
-  const {
-    messages: notesMessages,
-    loading: notesLoading,
-    expandedDocs: notesExpandedDocs,
-    copiedMessageId: notesCopiedMessageId,
-    setExpandedDocs: setNotesExpandedDocs,
-    handleSubmit: handleNotesSubmit,
-    handleCopy: handleNotesCopy,
-    handleRegenerate: handleNotesRegenerate,
-    handleReset: handleNotesReset,
-    setMessages: setNotesMessages,
-  } = useNotesChat(userInput, networkSelectedModel, searchEnabled);
+  const [thinkingTimeMap, setThinkingTimeMap] = useState(new Map());
+  const [isSummrayFailed, setIsSummrayFailed] = useState(new Map());
+  const [isAnalysisFailed, setIsAnalysisFailed] = useState(new Map());
+  const timerRef = useRef(null);
 
   useEffect(() => {
     fetchDeepSeekConfig();
   }, [activatePage]);
 
-  const {
-    fetchRelatedQuestions,
-    currentUrlRelatedQuestions,
-    currentUrlLoading,
-  } = useRelatedQuestions({
-    content: pageContent,
-    currentUrl,
-    activatePage,
-  });
+  const { fetchRelatedQuestions, currentUrlRelatedQuestions, currentUrlLoading } =
+    useRelatedQuestions({
+      content: pageContent,
+      currentUrl,
+      activatePage,
+    });
 
   useEffect(() => {
     fetchRelatedQuestions();
@@ -169,25 +128,37 @@ export default function Sidebar() {
           setCurrentUrlTab(cachedTab);
         } else {
           setCurrentUrlTab("welcome");
-          setUrlTabCache((prevCache) =>
-            new Map(prevCache).set(currentUrl, "welcome")
-          );
+          setUrlTabCache((prevCache) => new Map(prevCache).set(currentUrl, "welcome"));
         }
       }
     };
 
     updateUrlTab();
-  }, [currentUrl]);
+  }, [currentUrl, setCurrentUrl]);
 
   useEffect(() => {
     if (currentUrl && currentUrlTab) {
-      setUrlTabCache((prevCache) =>
-        new Map(prevCache).set(currentUrl, currentUrlTab)
-      );
+      setUrlTabCache((prevCache) => new Map(prevCache).set(currentUrl, currentUrlTab));
     }
-  }, [currentUrl, currentUrlTab]);
+  }, [currentUrl, currentUrlTab, setCurrentUrlTab]);
 
   useEffect(() => {
+    const resetFailureStates = (url) => {
+      if (isAnalysisFailed.get(url)) {
+        setIsAnalysisFailed((prev) => new Map(prev).set(url, false));
+      }
+      if (isSummrayFailed.get(url)) {
+        setIsSummrayFailed((prev) => new Map(prev).set(url, false));
+      }
+    };
+    resetFailureStates(currentUrl);
+  }, [currentUrl, setCurrentUrl]);
+
+  useEffect(() => {
+    if (isSummrayFailed.get(currentUrl)) {
+      return;
+    }
+
     if (!webPreview) {
       return;
     }
@@ -241,6 +212,7 @@ export default function Sidebar() {
         setSummaryCache((prev) => new Map(prev).set(url, summary));
         setPageSummary(summary);
       } catch (error) {
+        setIsSummrayFailed((prev) => new Map(prev).set(url, true));
         console.error("获取摘要失败:", error);
       } finally {
         if (url === currentUrl) {
@@ -269,6 +241,10 @@ export default function Sidebar() {
   ]);
 
   useEffect(() => {
+    if (isAnalysisFailed.get(currentUrl)) {
+      return;
+    }
+
     if (
       !pageContent ||
       !webPreview ||
@@ -304,9 +280,7 @@ export default function Sidebar() {
           setPageCriticalAnalysis(cachedAnalysis);
           setLoadingUrls((prev) => new Map(prev).set(url, false));
           setPageLoading(false);
-          setCriticalAnalysisCache((prev) =>
-            new Map(prev).set(url, cachedAnalysis)
-          );
+          setCriticalAnalysisCache((prev) => new Map(prev).set(url, cachedAnalysis));
           return;
         }
         const analysis = await fetchCriticalAnalysis(content, userInput);
@@ -314,6 +288,7 @@ export default function Sidebar() {
         setCriticalAnalysisCache((prev) => new Map(prev).set(url, analysis));
         setPageCriticalAnalysis(analysis);
       } catch (error) {
+        setIsAnalysisFailed((prev) => new Map(prev).set(url, true));
         console.error("获取批判分析失败:", error);
       } finally {
         if (url === currentUrl) {
@@ -341,23 +316,58 @@ export default function Sidebar() {
     activatePage,
   ]);
 
-  const [selectedModel, setSelectedModel] = useState("Deepseek-R1");
-  const [selectedModelProvider, setSelectedModelProvider] =
-    useState("super2brain");
-
-  const [selectedModelIsSupportsImage, setSelectedModelIsSupportsImage] =
-    useState(true);
+  const [selectedModelIsSupportsImage, setSelectedModelIsSupportsImage] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
 
-  const addMessage = useCallback(
-    (url, role, content, model = "", reason_content = "") => {
+  const addMessage = useCallback((url, role, content, model = "", reason_content = "") => {
+    setMessages((prevMessages) => {
+      const urlMessages = prevMessages.get(url) || [];
+      const newMessages = new Map(prevMessages);
+      newMessages.set(url, [
+        ...urlMessages,
+        {
+          role,
+          content,
+          timestamp: Date.now(),
+          model,
+          reason_content,
+          isExpanded: true,
+          isShowRelatedQuestions: false,
+        },
+      ]);
+      return newMessages;
+    });
+  }, []);
+
+  const updateMessage = useCallback(
+    (
+      url,
+      newContent,
+      reasoning_content,
+      relatedQuestions,
+      isRelatedQuestions,
+      isShowRelatedQuestions
+    ) => {
       setMessages((prevMessages) => {
         const urlMessages = prevMessages.get(url) || [];
         const newMessages = new Map(prevMessages);
-        newMessages.set(url, [
-          ...urlMessages,
-          { role, content, timestamp: Date.now(), model, reason_content },
-        ]);
+        if (urlMessages.length > 0) {
+          urlMessages[urlMessages.length - 1].content =
+            urlMessages[urlMessages.length - 1].content + newContent;
+          urlMessages[urlMessages.length - 1].reason_content =
+            urlMessages[urlMessages.length - 1].reason_content + reasoning_content;
+        }
+        if (relatedQuestions) {
+          urlMessages[urlMessages.length - 1].relatedQuestions = relatedQuestions;
+        }
+
+        urlMessages[urlMessages.length - 1].isRelatedQuestions = isRelatedQuestions || false;
+
+        if (isShowRelatedQuestions) {
+          urlMessages[urlMessages.length - 1].isShowRelatedQuestions =
+            isShowRelatedQuestions || false;
+        }
+        newMessages.set(url, urlMessages);
         return newMessages;
       });
     },
@@ -365,9 +375,7 @@ export default function Sidebar() {
   );
 
   const getCurrentUrlMessages = React.useCallback(() => {
-    return (messages.get(currentUrl) || []).filter(
-      (msg) => msg.role !== "system"
-    );
+    return (messages.get(currentUrl) || []).filter((msg) => msg.role !== "system");
   }, [currentUrl, messages]);
 
   const clearCurrentUrlMessages = useCallback(() => {
@@ -435,10 +443,7 @@ export default function Sidebar() {
           setPageCriticalAnalysis(criticalAnalysis);
         }
 
-        if (
-          url.startsWith("chrome://") ||
-          url.startsWith("chrome-extension://")
-        ) {
+        if (url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
           setPageContent("此页面不支持内容获取");
           return;
         }
@@ -458,9 +463,7 @@ export default function Sidebar() {
             setMessages((prevMessages) => {
               const newMessages = new Map(prevMessages);
               const urlMessages = newMessages.get(url) || [];
-              const messagesWithoutSystem = urlMessages.filter(
-                (msg) => msg.role !== "system"
-              );
+              const messagesWithoutSystem = urlMessages.filter((msg) => msg.role !== "system");
               newMessages.set(url, [
                 {
                   role: "system",
@@ -479,10 +482,7 @@ export default function Sidebar() {
                   { type: "GET_CURRENT_CONTENT_MARKDOWN", url },
                   (response) => {
                     if (chrome.runtime.lastError) {
-                      console.error(
-                        "❌ 发送消息失败:",
-                        chrome.runtime.lastError
-                      );
+                      console.error("❌ 发送消息失败:", chrome.runtime.lastError);
                       reject(chrome.runtime.lastError);
                     } else {
                       resolve(response);
@@ -505,8 +505,7 @@ export default function Sidebar() {
       }
     };
 
-    const handleTabUpdate = (tabId, changeInfo) =>
-      changeInfo.url && updateUrlAndContent();
+    const handleTabUpdate = (tabId, changeInfo) => changeInfo.url && updateUrlAndContent();
 
     updateUrlAndContent();
     chrome.tabs.onActivated.addListener(updateUrlAndContent);
@@ -529,11 +528,7 @@ export default function Sidebar() {
       try {
         const processedMessages = messages.map((message) => ({
           role: MessageRole.USER,
-          content: processContent(
-            message.content,
-            selectedModel,
-            message.imageData
-          ),
+          content: processContent(message.content, selectedModel, message.imageData),
         }));
 
         if (!isRetry) {
@@ -554,6 +549,7 @@ export default function Sidebar() {
           ...getCurrentUrlMessages(),
           ...(isRetry ? [] : processedMessages),
         ];
+        addMessage(currentUrl, MessageRole.ASSISTANT, "", selectedModel);
         const response = await callAI({
           provider: selectedModelProvider,
           baseUrl: settings[selectedModelProvider].baseUrl,
@@ -563,64 +559,43 @@ export default function Sidebar() {
           options: {
             temperature: 0.7,
             maxTokens: 2000,
-          },
-          onProgress: (progress) => {
-            if (progress.state === 1) {
-              const response = progress.response;
-              addMessage(
-                currentUrl,
-                MessageRole.ASSISTANT,
-                response.content,
-                selectedModel
-              );
-            }
-            if (progress.state === 2) {
-              const relatedQuestions = progress.relatedQuestions;
-            }
+            onProgress: (progress) => {
+              if (progress.state === 1) {
+                const response = progress.response;
+                updateMessage(currentUrl, response.content, response.reasoning_content, []);
+              }
+              if (progress.state === 2) {
+                const relatedQuestions = progress.relatedQuestions;
+                updateMessage(currentUrl, "", "", relatedQuestions, false, true);
+              }
+              if (progress.state === 3) {
+                const isRelatedQuestions = progress.isRelatedQuestions;
+                if (isRelatedQuestions) {
+                  const isRelatedQuestions = progress.isRelatedQuestions;
+                  updateMessage(currentUrl, "", "", [], isRelatedQuestions, true);
+                }
+              }
+            },
           },
         });
-        if (response.reason_content) {
-          addMessage(
-            currentUrl,
-            MessageRole.ASSISTANT,
-            response.content,
-            selectedModel,
-            response.reason_content
-          );
-        } else {
-          addMessage(
-            currentUrl,
-            MessageRole.ASSISTANT,
-            response.content,
-            selectedModel
-          );
-        }
       } catch (error) {
         console.error("API 请求失败:", error);
         if (error.message === "余额不足") {
           setIsShowModal(true);
         }
-        addMessage(
-          currentUrl,
-          MessageRole.ASSISTANT,
-          `${error.message}`
-        );
+        updateMessage(currentUrl, "请求失败，请检查网络或者切换模型", "", [], false, false);
       } finally {
         setIsAiThinking(false);
         thinkingStateRef.current.set(currentUrl, false);
-        setCurrentUrlChatLoading((prev) =>
-          new Map(prev).set(currentUrl, false)
-        );
+        setCurrentUrlChatLoading((prev) => new Map(prev).set(currentUrl, false));
+        setThinkingTimeMap((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(currentUrl);
+          return newMap;
+        });
       }
     },
-    [
-      currentUrl,
-      addMessage,
-      getCurrentUrlMessages,
-      pageSystemMessage,
-      settings,
-      selectedModel,
-    ]
+    [currentUrl, addMessage, getCurrentUrlMessages, pageSystemMessage, settings, selectedModel]
   );
 
   useEffect(() => {
@@ -644,10 +619,7 @@ export default function Sidebar() {
       if (isAiThinking) return;
 
       const messages = getCurrentUrlMessages();
-      const userMessage =
-        messages[messageId - 1]?.role === "user"
-          ? messages[messageId - 1]
-          : null;
+      const userMessage = messages[messageId - 1]?.role === "user" ? messages[messageId - 1] : null;
 
       if (!userMessage) return;
 
@@ -682,9 +654,95 @@ export default function Sidebar() {
     [setSettings]
   );
 
+  const currentBaseUrl = useMemo(
+    () => settings[selectedModelProvider]?.baseUrl || config.baseUrl,
+    [settings, selectedModelProvider, activatePage]
+  );
+
+  const currentApiKey = useMemo(
+    () => settings[selectedModelProvider]?.apiKey || userInput,
+    [settings, selectedModelProvider, userInput]
+  );
+
+  const deepSearchState = useDeepSearch(
+    userInput,
+    maxDepth,
+    getNeedTime,
+    calculateModelCalls,
+    checkBalance,
+    setIsShowModal,
+    currentApiKey,
+    currentBaseUrl
+  );
+
+  const thinkingAgent = useMemo(
+    () =>
+      createThingAgent({
+        apiKey: currentApiKey,
+        model: networkSelectedModel.toLowerCase(),
+        baseURL: currentBaseUrl,
+        provider: selectedModelProvider,
+      }),
+    [networkSelectedModel, userInput]
+  );
+
+  const {
+    message,
+    isLoading,
+    handleSubmit: handleNetworkSubmit,
+    setMessage,
+    updateMessageCopyStatus,
+  } = useMessageHandler(
+    thinkingAgent,
+    networkSelectedModel,
+    currentApiKey,
+    searchEnabled,
+    currentBaseUrl,
+    selectedModelProvider,
+    checkBalance
+  );
+
+  useEffect(() => {
+    if (isAiThinking) {
+      if (!thinkingTimeMap.has(currentUrl)) {
+        setThinkingTimeMap((prev) => new Map(prev).set(currentUrl, 0));
+      }
+
+      timerRef.current = setInterval(() => {
+        setThinkingTimeMap((prev) => {
+          const newMap = new Map(prev);
+          const currentTime = prev.get(currentUrl) || 0;
+          newMap.set(currentUrl, currentTime + 1);
+          return newMap;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isAiThinking, currentUrl]);
+
+  useEffect(() => {
+    if (activatePage === 1) {
+      setSelectedModel("Deepseek-R1");
+      setSelectedModelProvider("super2brain");
+    } else if (activatePage === 2) {
+      setSelectedModel("gpt-4o-mini");
+      setSelectedModelProvider("super2brain");
+    } else if (activatePage === 3) {
+      setSelectedModel("gpt-4o-mini");
+      setSelectedModelProvider("super2brain");
+    }
+  }, [activatePage]);
+
+  useCheckLoginTime(setUserInput);
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
-      <div className="flex-1 flex flex-col min-w-0 m-1 rounded-l-xl bg-white">
+      <div className="flex-1 flex  flex-col min-w-0 m-1 rounded-l-xl bg-white overflow-hidden">
         <AnimatePresence mode="wait">
           {activatePage === 0 ? (
             <motion.div
@@ -729,9 +787,7 @@ export default function Sidebar() {
                 selectedModelProvider={selectedModelProvider}
                 selectedModelIsSupportsImage={selectedModelIsSupportsImage}
                 setSelectedModelProvider={setSelectedModelProvider}
-                setSelectedModelIsSupportsImage={
-                  setSelectedModelIsSupportsImage
-                }
+                setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
                 setActivatePage={setActivatePage}
                 getCurrentUrlMessages={getCurrentUrlMessages}
                 isAiThinking={isAiThinking}
@@ -743,6 +799,7 @@ export default function Sidebar() {
                 currentUrl={currentUrl}
                 selectedModel={selectedModel}
                 setSelectedModel={setSelectedModel}
+                thinkingTimeMap={thinkingTimeMap}
               />
             </motion.div>
           ) : activatePage === 2 ? (
@@ -759,30 +816,20 @@ export default function Sidebar() {
                 checkBalance={checkBalance}
                 userInput={userInput}
                 setActivatePage={setActivatePage}
+                selectedModel={selectedModel}
                 selectedModelProvider={selectedModelProvider}
                 selectedModelIsSupportsImage={selectedModelIsSupportsImage}
                 setSelectedModelProvider={setSelectedModelProvider}
-                setSelectedModelIsSupportsImage={
-                  setSelectedModelIsSupportsImage
-                }
+                setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
                 networkSelectedModel={networkSelectedModel}
                 setNetworkSelectedModel={setNetworkSelectedModel}
                 message={message}
                 isLoading={isLoading}
                 handleNetworkSubmit={handleNetworkSubmit}
                 setMessage={setMessage}
-                notesMessages={notesMessages}
-                notesLoading={notesLoading}
-                notesExpandedDocs={notesExpandedDocs}
-                notesCopiedMessageId={notesCopiedMessageId}
-                setExpandedDocs={setNotesExpandedDocs}
-                handleNotesSubmit={handleNotesSubmit}
-                handleNotesCopy={handleNotesCopy}
-                handleNotesRegenerate={handleNotesRegenerate}
-                handleNotesReset={handleNotesReset}
-                setMessages={setNotesMessages}
                 searchEnabled={searchEnabled}
                 setSearchEnabled={setSearchEnabled}
+                updateMessageCopyStatus={updateMessageCopyStatus}
               />
             </motion.div>
           ) : activatePage === 3 ? (
@@ -796,6 +843,9 @@ export default function Sidebar() {
               transition={pageTransition}
             >
               <DeepSearch
+                setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                setSelectedModelProvider={setSelectedModelProvider}
+                selectedModelProvider={selectedModelProvider}
                 selectedModel={deepSearchState.selectedModel}
                 setSelectedModel={deepSearchState.setSelectedModel}
                 maxDepth={maxDepth}
@@ -810,6 +860,7 @@ export default function Sidebar() {
                 setIsDeepThingActive={setIsDeepThingActive}
                 needTime={needTime}
                 setMessages={deepSearchState.setMessages}
+                setActivatePage={setActivatePage}
               />
             </motion.div>
           ) : activatePage === 5 ? (
@@ -832,6 +883,7 @@ export default function Sidebar() {
                 setUserInput={setUserInput}
                 userInput={userInput}
                 setIsShowModal={setIsShowModal}
+                setIsAddPoint={setIsAddPoint}
               />
             </motion.div>
           ) : activatePage === 4 ? (
@@ -850,19 +902,15 @@ export default function Sidebar() {
         </AnimatePresence>
       </div>
 
-      <div className="w-12 flex-shrink-0 bg-gray-100">
-        <ActivateBar
-          activatePage={activatePage}
-          setActivatePage={setActivatePage}
-        />
+      <div className="flex-shrink-0 w-12 bg-gray-100">
+        <ActivateBar activatePage={activatePage} setActivatePage={setActivatePage} />
       </div>
-      <UpdateNotification
-        isVisible={updateInfo.isUpdate}
-        updateInfo={updateInfo}
-      />
+      <UpdateNotification isVisible={updateInfo.isUpdate} updateInfo={updateInfo} />
       <UnenoughBalance
+        isAddPoint={isAddPoint}
         isShowModal={isShowModal}
         setIsShowModal={setIsShowModal}
+        setIsAddPoint={setIsAddPoint}
       />
     </div>
   );

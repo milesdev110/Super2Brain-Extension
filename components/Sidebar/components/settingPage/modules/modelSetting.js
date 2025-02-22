@@ -1,16 +1,20 @@
 import {
   checkDeepSeekApiKey,
-  checkClaudeApiKey,
   checkOpenAiApiKey,
   checkOllamaConnection,
   validateAllCustomModels,
   checkLMStudioConnection,
 } from "../utils/check";
 import { useState } from "react";
-import { X, CheckCircle, Loader2 } from "lucide-react";
+import {
+  X,
+  CheckCircle,
+  Loader2,
+  ArrowRight,
+  AlertTriangle,
+} from "lucide-react";
 import {
   setDeepSeekApiKey,
-  setClaudeApiKey,
   setOpenaiApiKey,
   setOllamaConfig,
   setLmstudioConfig,
@@ -26,7 +30,6 @@ import { Tooltip } from "react-tooltip";
 
 const MODEL_NAMES = {
   deepseek: "DeepSeek",
-  claude: "Claude",
   openai: "OpenAI",
   ollama: "Ollama",
   lmstudio: "LM Studio",
@@ -39,11 +42,6 @@ const API_INFO = {
       "DeepSeek API 支持多种强大的AI模型，包括 DeepSeek-Coder。点击下方链接前往官网获取 API Key。",
     link: "https://platform.deepseek.com/",
   },
-  claude: {
-    description:
-      "Claude 是 Anthropic 开发的先进AI助手，支持长文本理解和生成。访问 Anthropic 官网获取 API Key。",
-    link: "https://console.anthropic.com/",
-  },
   openai: {
     description:
       "OpenAI 提供包括 GPT-4、GPT-3.5 等多个AI模型。登录 OpenAI 平台创建 API Key。",
@@ -53,6 +51,7 @@ const API_INFO = {
     description:
       "Ollama 允许您在本地运行大型语言模型。输入 Ollama 服务器的 URL 地址，API Key 为可选项。",
     link: "https://ollama.ai",
+    infomation: "如果ollama验证通过且获取模型但是无法使用，请检查跨域问题",
   },
   lmstudio: {
     description:
@@ -82,7 +81,6 @@ const ModelSettings = ({
 
   const [verifyStatuses, setVerifyStatuses] = useState({
     deepseek: { status: null, message: "" },
-    claude: { status: null, message: "" },
     openai: { status: null, message: "" },
     ollama: { status: null, message: "" },
     lmstudio: { status: null, message: "" },
@@ -126,10 +124,6 @@ const ModelSettings = ({
           isValid = await checkDeepSeekApiKey(apiKey);
           if (isValid) await setDeepSeekApiKey(apiKey);
           break;
-        case "claude":
-          isValid = await checkClaudeApiKey(apiKey);
-          if (isValid) await setClaudeApiKey(apiKey);
-          break;
         case "openai":
           isValid = await checkOpenAiApiKey(apiKey, settings[modelKey].url);
           if (isValid) {
@@ -138,7 +132,6 @@ const ModelSettings = ({
               await setOpenAiUrl(settings[modelKey].url);
             }
           }
-
           break;
         case "ollama":
           isValid = await checkOllamaConnection(settings[modelKey].url, apiKey);
@@ -341,6 +334,20 @@ const ModelSettings = ({
             </a>
           </p>
 
+          {modelKey === "ollama" && (
+            <div className="mt-2 p-3 bg-amber-50 rounded-lg">
+              <p className="text-sm text-amber-700 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                <a
+                  href="#"
+                  className="inline-flex items-center group text-indigo-600"
+                >
+                  {API_INFO[modelKey].infomation}
+                </a>
+              </p>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -431,12 +438,6 @@ const ModelSettings = ({
               >
                 注意：仅支持 OpenAI 规范的接口
               </span>
-              <Tooltip
-                id="openai-spec-tooltip"
-                place="bottom"
-                className="max-w-xs rounded-lg"
-                content={<div className="text-sm">什么是OpenAI 规范接口</div>}
-              />
             </p>
           </div>
 

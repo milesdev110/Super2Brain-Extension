@@ -43,6 +43,10 @@ export const useCheckBalance = () => {
     "doubao-lite-128k": 0,
     "qwen-max": 0,
     "qwen-turbo": 0,
+    "claude-3.5-sonnet": 0,
+    "claude-3-opus": 0,
+    "ernie-speed-128k": 0,
+    "ernie-4.0-8k-latest": 0,
   });
   const [balance, setBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(false);

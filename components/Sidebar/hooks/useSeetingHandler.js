@@ -25,10 +25,6 @@ const useSeetingHandler = () => {
       baseUrl: "https://api.openai.com",
       apiKey: "",
     },
-    claude: {
-      baseUrl: "https://api.anthropic.com",
-      apiKey: "",
-    },
     ollama: {
       baseUrl: "http://localhost:11434",
       apiKey: "",
@@ -55,7 +51,6 @@ const useSeetingHandler = () => {
       const ollamaConfig = await getOllamaConfig();
       const customConfig = await getCustomConfig();
       const openaiUrl = await getOpenAiUrl();
-      console.log(openaiUrl);
       setSettings((prev) => ({
         super2brain: {
           baseUrl: `${config.baseUrl}/v1` || "",

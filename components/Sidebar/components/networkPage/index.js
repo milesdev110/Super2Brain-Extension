@@ -1,14 +1,13 @@
-import { Plus, Send, Trash2, Search } from "lucide-react";
+import { Plus, Send, Trash2, Search, RefreshCw } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import { useState, useMemo, useEffect } from "react";
 import { super2brainModel } from "../../config/models.js";
-
 import { MessageRenderer } from "./modules/MessageRenderer";
-
-import { MessageList } from "../notesPage/modules/MessageList";
-
-import { ModelSelector2 } from "../common/modelSelect2.js";
-
+import { ModelSelector } from "../common/modelSelect.js";
+import { useSearchEngine } from "../../hooks/useSearchEngine";
+import { BsBing } from "react-icons/bs";
+import { SiZhihu, SiXiaohongshu } from "react-icons/si";
+import { ModelSelector2 } from "../common/modelSelect2";
 const NetworkSearch = ({
   userInput,
   setActivatePage,
@@ -17,33 +16,21 @@ const NetworkSearch = ({
   setSelectedModelProvider,
   setSelectedModelIsSupportsImage,
   checkBalance,
-  networkSelectedModel,
   setNetworkSelectedModel,
   message,
+  networkSelectedModel,
   isLoading,
   handleNetworkSubmit,
   setMessage,
-  notesMessages,
-  notesLoading,
-  notesExpandedDocs,
-  notesCopiedMessageId,
-  setExpandedDocs,
-  handleNotesSubmit,
-  handleNotesCopy,
-  handleNotesRegenerate,
-  handleNotesReset,
-  setMessages,
   searchEnabled,
   setSearchEnabled,
+  updateMessageCopyStatus,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [chatMode, setChatMode] = useState("network");
   const [networkTimer, setNetworkTimer] = useState(null);
   const [networkElapsedTime, setNetworkElapsedTime] = useState(0);
-  const [notesTimer, setNotesTimer] = useState(null);
-  const [notesElapsedTime, setNotesElapsedTime] = useState(0);
-
+  const { searchSource } = useSearchEngine();
   const model = super2brainModel[networkSelectedModel]?.id || "选择模型";
 
   const handleModelSelect = (modelId) => {
@@ -54,122 +41,56 @@ const NetworkSearch = ({
   const [isSendAgain, setIsSendAgain] = useState(true);
 
   useEffect(() => {
-    if (
-      message.length === 0 ||
-      (chatMode === "network" &&
-        message[message.length - 1].isComplete === false)
-    ) {
-      setIsSendAgain(true);
-    } else {
-      setIsSendAgain(false);
+    if (message.length > 0) {
+      setIsSendAgain(message[message.length - 1].isComplete === true);
     }
-    if (
-      notesMessages.length === 0 ||
-      (chatMode === "notes" &&
-        notesMessages[notesMessages.length - 1].isComplete === false)
-    ) {
-      setIsSendAgain(true);
-    } else {
-      setIsSendAgain(false);
-    }
-  }, [chatMode, message, notesMessages]);
+  }, [message]);
 
   const handleReset = () => {
-    if (chatMode === "network") {
-      setQuery("");
-      setMessage([]);
-      stopTimer(true);
-      setNetworkElapsedTime(0);
-    } else {
-      handleNotesReset();
-      stopTimer(false);
-      setNotesElapsedTime(0);
-    }
+    setQuery("");
+    setMessage([]);
+    stopTimer();
+    setNetworkElapsedTime(0);
   };
 
-  const startTimer = (isNetwork = true) => {
-    stopTimer(isNetwork);
-
-    if (isNetwork) {
-      setNetworkElapsedTime(0);
-    } else {
-      setNotesElapsedTime(0);
-    }
+  const startTimer = () => {
+    stopTimer();
+    setNetworkElapsedTime(0);
 
     const startTime = Date.now();
     const timerInterval = setInterval(() => {
-      if (isNetwork) {
-        setNetworkElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-      } else {
-        setNotesElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-      }
+      setNetworkElapsedTime(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
 
-    if (isNetwork) {
-      setNetworkTimer(timerInterval);
-    } else {
-      setNotesTimer(timerInterval);
-    }
+    setNetworkTimer(timerInterval);
   };
 
-  const stopTimer = (isNetwork = true) => {
-    if (isNetwork) {
-      if (networkTimer) {
-        clearInterval(networkTimer);
-        setNetworkTimer(null);
-      }
-    } else {
-      if (notesTimer) {
-        clearInterval(notesTimer);
-        setNotesTimer(null);
-      }
+  const stopTimer = () => {
+    if (networkTimer) {
+      clearInterval(networkTimer);
+      setNetworkTimer(null);
     }
   };
 
   const handleMessageSubmit = async () => {
-    if (
-      !userInput ||
-      !query.trim() ||
-      (chatMode === "network" ? isLoading : notesLoading) ||
-      isSendAgain
-    )
-      return;
-    if (chatMode === "network") {
-      const isEnough = await checkBalance(7, model, 3);
-      if (!isEnough) return;
-    } else {
-      const isEnough = await checkBalance(4, model, 2);
-      if (!isEnough) return;
-    }
+    if (!userInput || !query.trim() || isLoading || !isSendAgain) return;
 
     const message = query;
     setQuery("");
 
     try {
-      if (chatMode === "network") {
-        setNetworkElapsedTime(0);
-        startTimer(true);
-        await handleNetworkSubmit(message);
-      } else {
-        setNotesElapsedTime(0);
-        startTimer(false);
-        await handleNotesSubmit(message);
-      }
+      setNetworkElapsedTime(0);
+      startTimer();
+      await handleNetworkSubmit(message);
     } catch (error) {
       console.error("发送消息时出错:", error);
-      stopTimer(chatMode === "network");
+      stopTimer();
     }
   };
 
   useEffect(() => {
-    stopTimer(true);
-    stopTimer(false);
-  }, [chatMode]);
-
-  useEffect(() => {
     return () => {
-      stopTimer(true);
-      stopTimer(false);
+      stopTimer();
     };
   }, []);
 
@@ -186,70 +107,42 @@ const NetworkSearch = ({
 
   return (
     <div className="w-full h-[calc(100vh-8px)] rounded-xl flex flex-col bg-white">
-      <div className="flex-shrink-0 py-4">
-        <div className="flex justify-center gap-2 p-2 bg-white/80 backdrop-blur-sm rounded-3xl w-fit mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 border border-gray-100/50">
-          <button
-            onClick={() => setChatMode("network")}
-            className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300
-              ${
-                chatMode === "network"
-                  ? "bg-indigo-50/90 text-indigo-600 shadow-[0_2px_12px_rgb(99,102,241,0.12)]"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50/80"
-              }`}
-          >
-            Web搜索
-          </button>
-          <button
-            onClick={() => setChatMode("notes")}
-            className={`px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300
-              ${
-                chatMode === "notes"
-                  ? "bg-indigo-50/90 text-indigo-600 shadow-[0_2px_12px_rgb(99,102,241,0.12)]"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50/80"
-              }`}
-          >
-            知识库搜索
-          </button>
-        </div>
-      </div>
-
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 p-2 space-y-4">
-        {chatMode === "network" ? (
-          <MessageRenderer
-            setMessage={setMessage}
-            messages={message}
-            setQuery={setQuery}
-            elapsedTime={networkElapsedTime}
-          />
-        ) : (
-          <MessageList
-            messages={notesMessages}
-            model={model}
-            copiedMessageId={notesCopiedMessageId}
-            expandedDocs={notesExpandedDocs}
-            handleCopy={handleNotesCopy}
-            handleRegenerate={handleNotesRegenerate}
-            setExpandedDocs={setExpandedDocs}
-            setQuery={setQuery}
-            elapsedTime={notesElapsedTime}
-          />
-        )}
+        <MessageRenderer
+          setMessage={setMessage}
+          messages={message}
+          setQuery={setQuery}
+          elapsedTime={networkElapsedTime}
+          updateMessageCopyStatus={updateMessageCopyStatus}
+          handleNetworkSubmit={handleNetworkSubmit}
+          isLoading={isLoading}
+          setActivatePage={setActivatePage}
+        />
       </div>
 
       <div className="flex-shrink-0 bg-white p-2">
         <div className="mb-2 flex items-center justify-end">
           <div className="flex items-center gap-2">
-            {((chatMode === "network" && message.length > 0) ||
-              (chatMode === "notes" && notesMessages.length > 0)) && (
-              <button
-                onClick={handleReset}
-                className="px-3 py-1.5 text-sm text-gray-600 bg-white border 
-                  border-gray-200 rounded-full hover:text-red-600 hover:border-red-200 
-                  hover:bg-red-50 transition-all duration-200 shadow-sm flex items-center gap-1.5"
-              >
-                <Trash2 className="w-4 h-4" />
-                清空对话
-              </button>
+            {message.length > 0 && (
+              <>
+                <button
+                  disabled={!message[message.length - 1].isComplete}
+                  onClick={handleReset}
+                  className="button-tag-clearChat px-3 py-1.5 text-sm text-gray-600 bg-white border 
+                    border-gray-200 rounded-full hover:text-red-600 hover:border-red-200 
+                    hover:bg-red-50 transition-all duration-200 shadow-sm flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  清空对话
+                </button>
+                <Tooltip
+                  style={{ borderRadius: "8px" }}
+                  anchorSelect=".button-tag-clearChat"
+                  place="top"
+                >
+                  {message[message.length - 1].isComplete ? "清空对话" : "请等待回答完成"}
+                </Tooltip>
+              </>
             )}
             <button
               onClick={() => setSearchEnabled(!searchEnabled)}
@@ -261,7 +154,7 @@ const NetworkSearch = ({
                 }`}
             >
               <Search className="w-4 h-4" />
-              <span className="text-sm">开启搜索</span>
+              <span className="text-sm">{searchEnabled ? "关闭搜索" : "开启搜索"}</span>
             </button>
           </div>
         </div>
@@ -282,41 +175,61 @@ const NetworkSearch = ({
           />
           <div className="p-2">
             <div className="flex items-center gap-2 justify-between">
-              <ModelSelector2
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-                model={model}
-                selectedModel={networkSelectedModel}
-                handleModelSelect={handleModelSelect}
-                super2brainModel={super2brainModel}
-                setActivatePage={setActivatePage}
-                useInput={userInput}
-                selectedModelProvider={selectedModelProvider}
-                selectedModelIsSupportsImage={selectedModelIsSupportsImage}
-                setSelectedModelProvider={setSelectedModelProvider}
-                setSelectedModelIsSupportsImage={
-                  setSelectedModelIsSupportsImage
-                }
-                setSelectedModel={setNetworkSelectedModel}
-              />
+              <div className="flex">
+                {!message || message.length === 0 ? (
+                  <ModelSelector
+                    isOpen={isOpen}
+                    setIsOpen={setIsOpen}
+                    model={model}
+                    selectedModel={networkSelectedModel}
+                    handleModelSelect={handleModelSelect}
+                    super2brainModel={super2brainModel}
+                    setActivatePage={setActivatePage}
+                    useInput={userInput}
+                    selectedModelProvider={selectedModelProvider}
+                    selectedModelIsSupportsImage={selectedModelIsSupportsImage}
+                    setSelectedModelProvider={setSelectedModelProvider}
+                    setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                    setSelectedModel={setNetworkSelectedModel}
+                  />
+                ) : (
+                  <div className="invisible">
+                    <ModelSelector
+                      isOpen={false}
+                      setIsOpen={() => {}}
+                      model={model}
+                      selectedModel={networkSelectedModel}
+                      handleModelSelect={() => {}}
+                      super2brainModel={super2brainModel}
+                      setActivatePage={setActivatePage}
+                      useInput={userInput}
+                      selectedModelProvider={selectedModelProvider}
+                      selectedModelIsSupportsImage={selectedModelIsSupportsImage}
+                      setSelectedModelProvider={setSelectedModelProvider}
+                      setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                      setSelectedModel={setNetworkSelectedModel}
+                    />
+                  </div>
+                )}
+
+                {message && message.length === 0 ? (
+                  <ModelSelector2 useInput={userInput} />
+                ) : (
+                  <div className="invisible">
+                    <ModelSelector2 useInput={userInput} />
+                  </div>
+                )}
+              </div>
 
               <div className="flex gap-2">
                 <button
                   onClick={handleMessageSubmit}
-                  disabled={
-                    !userInput ||
-                    !query.trim() ||
-                    (chatMode === "network" ? isLoading : notesLoading) ||
-                    isSendAgain
-                  }
+                  disabled={!userInput || !query.trim() || isLoading || !isSendAgain}
                   className={`button-tag-send p-2 rounded-xl
                 flex items-center justify-center
                 transition-all duration-200
                 ${
-                  !userInput ||
-                  !query.trim() ||
-                  (chatMode === "network" ? isLoading : notesLoading) ||
-                  isSendAgain
+                  !userInput || !query.trim() || isLoading || !isSendAgain
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : "bg-white text-gray-600 hover:text-blue-600 hover:bg-blue-50 border border-gray-200"
                 }

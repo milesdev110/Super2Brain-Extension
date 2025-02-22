@@ -9,6 +9,16 @@ export const AI_MODELS = {
     provider: "super2brain",
     supportsImage: false,
   },
+  "ERNIE-Speed-128K": {
+    id: "ERNIE-Speed-128K",
+    provider: "super2brain",
+    supportsImage: false,
+  },
+  "ERNIE-4.0-8K-Latest": {
+    id: "ERNIE-4.0-8K-Latest",
+    provider: "super2brain",
+    supportsImage: false,
+  },
   "glm-4-32k": {
     id: "glm-4-32k",
     provider: "super2brain",
@@ -56,6 +66,11 @@ export const AI_MODELS = {
   },
   "gpt-4o-mini": {
     id: "gpt-4o-mini",
+    provider: "super2brain",
+    supportsImage: true,
+  },
+  "grok-3": {
+    id: "grok-3",
     provider: "super2brain",
     supportsImage: true,
   },
@@ -131,6 +146,16 @@ export const AI_MODELS2 = {
   },
   "Deepseek-V3": {
     id: "Deepseek-V3",
+    provider: "super2brain",
+    supportsImage: false,
+  },
+  "ERNIE-Speed-128K": {
+    id: "ERNIE-Speed-128K",
+    provider: "super2brain",
+    supportsImage: false,
+  },
+  "ERNIE-4.0-8K-Latest": {
+    id: "ERNIE-4.0-8K-Latest",
     provider: "super2brain",
     supportsImage: false,
   },

@@ -1,8 +1,6 @@
-const PlaceHolder = ({
-  Icon,
-  title,
-  description,
-}) => {
+import { ArrowRight } from "lucide-react";
+
+const PlaceHolder = ({ Icon, title, description, setActivatePage }) => {
   return (
     <div className="flex-1 h-full flex items-center justify-center">
       <div className="p-8 text-center hover:scale-105 transition-all duration-300">
@@ -12,9 +10,7 @@ const PlaceHolder = ({
           </div>
           <div className="space-y-3">
             <div className="font-medium text-gray-700 text-lg">{title}</div>
-            <div className="text-sm text-gray-500 max-w-xs">
-              {description}
-            </div>
+            <div className="text-sm text-gray-500 max-w-xs">{description}</div>
           </div>
         </div>
       </div>

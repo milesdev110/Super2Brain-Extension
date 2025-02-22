@@ -1,5 +1,6 @@
 import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { memo, useMemo } from "react";
 
 const QuestionLoading = () => {
   const ballCount = 5;
@@ -28,7 +29,12 @@ const QuestionLoading = () => {
   );
 };
 
-export const RelatedQuestions = ({ message, setQuery }) => {
+export const RelatedQuestions = memo(({ message, setQuery }) => {
+  const questions = useMemo(
+    () => message.relatedQuestions || [],
+    [message.relatedQuestions]
+  );
+
   return (
     <>
       {message.questionsLoading && (
@@ -41,14 +47,14 @@ export const RelatedQuestions = ({ message, setQuery }) => {
         </div>
       )}
 
-      {!message.questionsLoading && message.relatedQuestions?.length > 0 && (
+      {!message.questionsLoading && questions.length > 0 && (
         <div className="mt-2 ml-2">
           <div className="flex items-center gap-2 mb-2 text-gray-600">
             <HelpCircle className="w-4 h-4 text-gray-500" />
             <span className="text-sm font-medium">猜你想问</span>
           </div>
           <div className="space-y-1">
-            {message.relatedQuestions.map((question, index) => (
+            {questions.map((question, index) => (
               <button
                 key={index}
                 onClick={() => setQuery(question)}
@@ -63,4 +69,4 @@ export const RelatedQuestions = ({ message, setQuery }) => {
       )}
     </>
   );
-};
+});

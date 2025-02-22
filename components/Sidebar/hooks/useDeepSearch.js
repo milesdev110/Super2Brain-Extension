@@ -1,3 +1,4 @@
+import { Settings } from "lucide-react";
 import { useState } from "react";
 
 export const useDeepSearch = (
@@ -6,7 +7,9 @@ export const useDeepSearch = (
   getNeedTime,
   calculateModelCalls,
   checkBalance,
-  setIsShowModal
+  setIsShowModal,
+  apikey,
+  baseUrl
 ) => {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
@@ -32,21 +35,17 @@ export const useDeepSearch = (
         content: currentStatus,
         isComplete: false,
       };
+      console.log(baseUrl);
+      if (baseUrl.includes("s2bapi.zima.pet")) {
+        const { selectModelTime, baseModelTime } = calculateModelCalls(maxDepth, selectedModel);
 
-      const { selectModelTime, baseModelTime } = calculateModelCalls(
-        maxDepth,
-        selectedModel
-      );
-      const isBalance = await checkBalance(
-        selectModelTime,
-        selectedModel,
-        baseModelTime
-      );
+        const isBalance = await checkBalance(selectModelTime, selectedModel, baseModelTime);
 
-      if (!isBalance) {
-        setMessages([]);
-        setIsShowModal(true);
-        return;
+        if (!isBalance) {
+          setMessages([]);
+          setIsShowModal(true);
+          return;
+        }
       }
 
       setMessages([userMessage, aiMessage]);
@@ -55,8 +54,9 @@ export const useDeepSearch = (
         question,
         0,
         maxDepth,
-        userInput,
         selectedModel,
+        apikey,
+        baseUrl,
         (status) => {
           setCurrentStatus(status);
           setMessages((prev) => {
@@ -84,8 +84,8 @@ export const useDeepSearch = (
       const errorMessage =
         error.message.includes("链接超时") || error.message.includes("余额不足")
           ? error.message
-          : "抱歉，深度思考过程中出现错误。请稍后重试或联系支持团队。";
-
+          : "抱歉，深度思考过程中出现错误。请稍后重试或联系支持团队。<br> 1. 检查网络连接<br> 2. 检查API密钥<br> 3. 检查余额 <br> 4. 如果是自定义模型的话，请检查模型是否太小。";
+      const errorTitle = "深度思考失败";
       setMessages([
         userMessage,
         {
@@ -93,6 +93,7 @@ export const useDeepSearch = (
           content: errorMessage,
           isComplete: true,
           isError: true,
+          errorTitle: errorTitle,
         },
       ]);
     } finally {

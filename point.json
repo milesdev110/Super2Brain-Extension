@@ -1,8 +1,15 @@
 {
-    "gpt-4o": 100,
-    "gpt-4o-mini": 100,
-    "deepseek-r1": 100,
-    "deepseek-v3": 100,
-    "glm-4-32k": 100,
-    "glm-4v": 100
+    "glm-4": 40,
+    "glm-4v": 40,
+    "qwen-max": 40,
+    "qwen-turbo": 40,
+    "doubao-pro": 40,
+    "doubao-lite": 40,
+    "claude-3-opus": 100,
+    "claude-3.5-sonnet": 100,
+    "gpt-4o": 120,
+    "gpt-4o-mini": 30,
+    "ernie-speed-128": 40,
+    "deepseek-r1": 80,
+    "deepseek-v3": 60
 }

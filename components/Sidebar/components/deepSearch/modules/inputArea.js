@@ -25,7 +25,7 @@ const InputArea = ({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
             <Brain className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs text-gray-600">思考深度</span>
+            <span className="text-xs text-gray-600">AI洞察分析</span>
           </div>
           <div className="w-32 flex items-center gap-2">
             <input
@@ -59,8 +59,8 @@ const InputArea = ({
         placeholder:text-gray-400 sm:text-sm/6"
           placeholder="请输入您的问题"
         />
-        <div className="flex items-center justify-between px-2 py-1 flex-nowrap">
-          <div className="flex gap-2">
+        <div className="flex items-center justify-between px-2 py-1 flex-nowrap max-w-full">
+          <div className="flex flex-1" style={{ minWidth: "100px", maxWidth: "80%" }}>
             <ModelSelector
               useInput={true}
               isOpen={dropdownOpen}

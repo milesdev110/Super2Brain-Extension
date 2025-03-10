@@ -49,16 +49,6 @@ export const AI_MODELS = {
     provider: "super2brain",
     supportsImage: false,
   },
-  "claude-3.5-sonnet": {
-    id: "claude-3.5-sonnet",
-    provider: "super2brain",
-    supportsImage: false,
-  },
-  "claude-3-opus": {
-    id: "claude-3-opus",
-    provider: "super2brain",
-    supportsImage: false,
-  },
   "gpt-4o": {
     id: "gpt-4o",
     provider: "super2brain",
@@ -69,6 +59,38 @@ export const AI_MODELS = {
     provider: "super2brain",
     supportsImage: true,
   },
+  "gpt-4.5-preview": {
+    id: "gpt-4.5-preview",
+    provider: "super2brain",
+    supportsImage: true,
+  },
+  "gpt-4.5-preview-2025-02-27": {
+    id: "gpt-4.5-preview-2025-02-27",
+    provider: "super2brain",
+    supportsImage: true,
+  },
+  "claude-3-7-sonnet": {
+    id: "claude-3-7-sonnet-20250219",
+    provider: "super2brain",
+    supportsImage: false,
+  },
+  "claude-3-7-sonnet-thinking": {
+    id: "claude-3-7-sonnet-thinking",
+    provider: "super2brain",
+    supportsImage: false,
+  },
+  "claude-3.5-sonnet": {
+    id: "claude-3.5-sonnet",
+    provider: "super2brain",
+    supportsImage: false,
+    
+  },
+  "claude-3-opus": {
+    id: "claude-3-opus",
+    provider: "super2brain",
+    supportsImage: false,
+  },
+
   "grok-3": {
     id: "grok-3",
     provider: "super2brain",

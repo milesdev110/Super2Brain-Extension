@@ -1,5 +1,5 @@
 import { Settings } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export const useDeepSearch = (
   userInput,
@@ -17,6 +17,33 @@ export const useDeepSearch = (
   const [currentStatus, setCurrentStatus] = useState("");
   const [hasError, setHasError] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+  const [isTerminating, setIsTerminating] = useState(false);
+  const abortControllerRef = useRef(null);
+
+  const handleTerminate = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsTerminating(true);
+
+      // 重置状态
+      setTimeout(() => {
+        setIsLoading(false);
+        setCurrentStatus("");
+        setIsTerminating(false);
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          if (newMessages.length > 0) {
+            newMessages[newMessages.length - 1] = {
+              ...newMessages[newMessages.length - 1],
+              content: "已终止AI洞察分析过程",
+              isComplete: true,
+            };
+          }
+          return newMessages;
+        });
+      }, 100);
+    }
+  };
 
   const handleSendMessage = async (question, getResponse) => {
     if (currentStatus.length > 0) setCurrentStatus("");
@@ -24,6 +51,7 @@ export const useDeepSearch = (
 
     setIsLoading(true);
     setHasError(false);
+    abortControllerRef.current = new AbortController();
 
     const userMessage = { role: "user", content: question, isComplete: true };
     setMessages([userMessage]);
@@ -34,8 +62,8 @@ export const useDeepSearch = (
         status: "thinking",
         content: currentStatus,
         isComplete: false,
+        startTime: Date.now(),
       };
-      console.log(baseUrl);
       if (baseUrl.includes("s2bapi.zima.pet")) {
         const { selectModelTime, baseModelTime } = calculateModelCalls(maxDepth, selectedModel);
 
@@ -50,6 +78,7 @@ export const useDeepSearch = (
 
       setMessages([userMessage, aiMessage]);
       const needTime = getNeedTime(maxDepth);
+
       const response = await getResponse(
         question,
         0,
@@ -58,6 +87,9 @@ export const useDeepSearch = (
         apikey,
         baseUrl,
         (status) => {
+          if (abortControllerRef.current.signal.aborted) {
+            throw new Error("已终止");
+          }
           setCurrentStatus(status);
           setMessages((prev) => {
             const newMessages = [...prev];
@@ -67,7 +99,8 @@ export const useDeepSearch = (
             }
             return newMessages;
           });
-        }
+        },
+        abortControllerRef.current.signal
       );
 
       setMessages([
@@ -79,13 +112,16 @@ export const useDeepSearch = (
         },
       ]);
     } catch (error) {
+      if (error.message === "已终止") {
+        return;
+      }
       console.error("发送消息失败:", error);
       setHasError(true);
       const errorMessage =
         error.message.includes("链接超时") || error.message.includes("余额不足")
           ? error.message
-          : "抱歉，深度思考过程中出现错误。请稍后重试或联系支持团队。<br> 1. 检查网络连接<br> 2. 检查API密钥<br> 3. 检查余额 <br> 4. 如果是自定义模型的话，请检查模型是否太小。";
-      const errorTitle = "深度思考失败";
+          : `### 抱歉，AI洞察分析过程中出现错误。请稍后重试或联系支持团队。\n #### 1. 检查网络连接\n #### 2. 检查API密钥\n #### 3. 检查余额 \n #### 4. 如果是自定义模型的话，请检查模型是否太小，或者是否存在跨域问题`;
+      const errorTitle = "AI洞察分析过程失败";
       setMessages([
         userMessage,
         {
@@ -97,8 +133,10 @@ export const useDeepSearch = (
         },
       ]);
     } finally {
-      setIsLoading(false);
-      setCurrentStatus("");
+      if (!isTerminating) {
+        setIsLoading(false);
+        setCurrentStatus("");
+      }
     }
   };
 
@@ -117,5 +155,7 @@ export const useDeepSearch = (
     hasError,
     selectedModel,
     setSelectedModel: handleSetSelectedModel,
+    isTerminating,
+    handleTerminate,
   };
 };

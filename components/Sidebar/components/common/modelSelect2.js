@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchEngine } from "../../hooks/useSearchEngine";
-import { setCurrentSearchSource, getZhihuCookies, getXhsCookies } from "../../../../public/storage";
+import { setCurrentSearchSource } from "../../../../public/storage";
 import { ChevronDown } from "lucide-react";
 
 const ModelSelector2 = ({ useInput }) => {
@@ -51,7 +51,11 @@ const ModelSelector2 = ({ useInput }) => {
   }, [setIsOpen]);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div
+      className="relative flex items-center flex-shrink-0"
+      ref={dropdownRef}
+      style={{ minWidth: "30%", maxWidth: "100%" }}
+    >
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-1 border border-gray-200 rounded-xl shadow-lg z-10 w-[170px] h-auto overflow-hidden bg-white">
           <div className="py-2">
@@ -66,57 +70,38 @@ const ModelSelector2 = ({ useInput }) => {
       )}
       <div
         onClick={handleClick}
-        className={`mt-1 ml-1 flex items-center px-3 py-2
-          flex-shrink-0 w-auto max-w-[120px] rounded-xl 
+        className={`flex items-center px-3 py-2
+          rounded-xl 
           border border-indigo-300
           transition-all duration-200
-          shadow-sm bg-indigo-500 text-white overflow-hidden text-ellipsis whitespace-nowrap`}
+          shadow-sm bg-indigo-500 text-white cursor-pointer hover:bg-indigo-400 hover:shadow-md active:scale-[0.98]`}
+        style={{ width: "auto", maxWidth: "100%" }}
       >
-        {getSearchSourceIcon()}
-        <span className={`text-sm ml-2 font-medium`}>{getSearchSourceName()}</span>
-        <ChevronDown className="w-4 h-4 ml-auto text-white/80" />
+        <span className="flex-shrink-0">{getSearchSourceIcon()}</span>
+        <div className="overflow-hidden max-w-[100px]">
+          <span className="text-sm ml-2 font-medium truncate block">{getSearchSourceName()}</span>
+        </div>
+        <ChevronDown className="w-4 h-4 ml-1 flex-shrink-0 text-white/80" />
       </div>
     </div>
   );
 };
 
 const ModelGroup = ({ models, useInput = true, onModelSelect, setIsOpen }) => {
-  const [isZhihuLoggedIn, setIsZhihuLoggedIn] = useState(false);
-  const [isXhsLoggedIn, setIsXhsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const checkLoggedIn = async () => {
-      const zhihuStatus = await getZhihuCookies();
-      const xhsStatus = await getXhsCookies();
-      setIsZhihuLoggedIn(zhihuStatus && zhihuStatus.length > 0);
-      setIsXhsLoggedIn(xhsStatus && xhsStatus.length > 0);
-    };
-    checkLoggedIn();
-  }, []);
-
   return (
     <>
       {models.map((model) => (
         <div
           key={model.name}
           className={`px-4 py-2 text-sm transition-all duration-200
-                    hover:bg-indigo-50 flex items-center group  z-50 ${
-                      !isXhsLoggedIn && model.value === "xiaohongshu" ? "cursor-not-allowed" : ""
-                    }`}
+                    hover:bg-indigo-50 flex items-center group  z-50 `}
           onClick={() => {
-            if (!isXhsLoggedIn && model.value === "xiaohongshu") return;
             onModelSelect(model);
             setIsOpen(false);
           }}
         >
           {model.selectIcon}
-          <span className="group-hover:text-indigo-600 pl-4">
-            {!isXhsLoggedIn && model.value === "xiaohongshu" ? (
-              <button className="text-indigo-600 underline">验证小红书登录</button>
-            ) : (
-              model.name
-            )}
-          </span>
+          <span className="group-hover:text-indigo-600 pl-4">{model.name}</span>
         </div>
       ))}
     </>

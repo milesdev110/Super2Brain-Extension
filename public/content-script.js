@@ -16,6 +16,7 @@ async function initializeContentScript() {
     chrome.runtime.sendMessage({
       type: "CURRENT_CONTENT_MARKDOWN",
       payload: currentContentMarkDown,
+      url: window.location.href,
     });
   } catch (error) {
     console.error("❌ 初始化失败:", error);
@@ -29,6 +30,7 @@ async function initializeContentScript() {
         chrome.runtime.sendMessage({
           type: "CURRENT_CONTENT_MARKDOWN",
           payload: markdown,
+          url: location.href,
         });
       } catch (error) {
         console.error("❌ 新页面提取失败:", error);
@@ -39,54 +41,49 @@ async function initializeContentScript() {
   let lastUrl = location.href;
   observer.observe(document, { subtree: true, childList: true });
 
-  chrome.runtime.onMessage.addListener(
-    async (message, sender, sendResponse) => {
-      if (message.type === "CHECK_READY") {
-        sendResponse({ ready: true });
-        return false;
+  chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if (message.type === "CHECK_READY") {
+      sendResponse({ ready: true });
+      return false;
+    }
+
+    if (message.type === "PING") {
+      sendResponse({ status: "ok" });
+      return false;
+    }
+
+    if (message.type === "GET_MARKDOWN") {
+      try {
+        await ensureDependencies();
+
+        const markdown = await extractMarkdown(message.url || window.location.href);
+        chrome.runtime.sendMessage({
+          type: "MARKDOWN_CONTENT",
+          payload: markdown,
+        });
+
+        sendResponse({ status: "success" });
+      } catch (error) {
+        console.error("处理内容失败:", error);
+        sendResponse({ status: "error", error: error.message });
       }
-
-      if (message.type === "PING") {
-        sendResponse({ status: "ok" });
-        return false;
-      }
-
-      if (message.type === "GET_MARKDOWN") {
-        try {
-          await ensureDependencies();
-
-          const markdown = await extractMarkdown(
-            message.url || window.location.href
-          );
-          chrome.runtime.sendMessage({
-            type: "MARKDOWN_CONTENT",
-            payload: markdown,
-          });
-
-          sendResponse({ status: "success" });
-        } catch (error) {
-          console.error("处理内容失败:", error);
-          sendResponse({ status: "error", error: error.message });
-        }
-        return true;
-      } else if (message.type === "GET_CURRENT_CONTENT_MARKDOWN") {
-        try {
-          await ensureDependencies();
-          const currentContentMarkDown = await extractMarkdown(
-            message.url || window.location.href
-          );
-          chrome.runtime.sendMessage({
-            type: "CURRENT_CONTENT_MARKDOWN",
-            payload: currentContentMarkDown,
-          });
-          sendResponse({ status: "success" });
-        } catch (error) {
-          console.error("处理内容失败:", error);
-          sendResponse({ status: "error", error: error.message });
-        }
+      return true;
+    } else if (message.type === "GET_CURRENT_CONTENT_MARKDOWN") {
+      try {
+        await ensureDependencies();
+        const currentContentMarkDown = await extractMarkdown(message.url || window.location.href);
+        chrome.runtime.sendMessage({
+          type: "CURRENT_CONTENT_MARKDOWN",
+          payload: currentContentMarkDown,
+          url: message.url,
+        });
+        sendResponse({ status: "success" });
+      } catch (error) {
+        console.error("处理内容失败:", error);
+        sendResponse({ status: "error", error: error.message });
       }
     }
-  );
+  });
 }
 
 function injectScript(scriptPath) {
@@ -100,10 +97,7 @@ function injectScript(scriptPath) {
 
 // 确保依赖加载的函数
 async function ensureDependencies() {
-  if (
-    typeof TurndownService === "undefined" ||
-    typeof Readability === "undefined"
-  ) {
+  if (typeof TurndownService === "undefined" || typeof Readability === "undefined") {
     await injectDependencies();
   }
 }
@@ -111,7 +105,6 @@ async function ensureDependencies() {
 // 初始化
 initializeContentScript();
 
-// 修改 extractMarkdown 函数以支持外部 URL
 async function extractMarkdown(url) {
   try {
     let documentToProcess;
@@ -132,9 +125,7 @@ async function extractMarkdown(url) {
     const pageContent = {
       title: documentToProcess.title || "无标题",
       url: url,
-      metaDescription:
-        documentToProcess.querySelector('meta[name="description"]')?.content ||
-        "",
+      metaDescription: documentToProcess.querySelector('meta[name="description"]')?.content || "",
     };
 
     const reader = new Readability(documentToProcess, {

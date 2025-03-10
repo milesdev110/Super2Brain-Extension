@@ -110,7 +110,16 @@ export async function setWebPreview(webPreview) {
 
 export async function getWebPreview() {
   const webPreview = await getItem("webPreview");
-  return webPreview ?? true;
+  return webPreview ?? false;
+}
+
+export async function setPreviewLight(previewLight) {
+  return setItem("previewLight", previewLight);
+}
+
+export async function getPreviewLight() {
+  const previewLight = await getItem("previewLight");
+  return previewLight ?? true;
 }
 
 export async function getDeepSeekApiKey() {
@@ -337,16 +346,6 @@ export async function setLatestVersionInfo(versionInfo) {
   });
 }
 
-export async function getLatestVersionInfo() {
-  return {
-    version: "1.0.1",
-    description: "测试版本",
-    releaseNotes: "测试版本",
-    downloadUrl: "https://www.baidu.com",
-    publishDate: "2025-02-13",
-  };
-}
-
 export async function getVersion() {
   const manifest = chrome.runtime.getManifest();
   const manifestVersion = manifest.version;
@@ -377,10 +376,7 @@ const compareVersions = (v1, v2) => {
 };
 
 export async function checkNeedsUpdate(v2) {
-  const [currentVersion, lastCheck] = await Promise.all([
-    getVersion(),
-    getLastUpdateCheck(),
-  ]);
+  const [currentVersion, lastCheck] = await Promise.all([getVersion(), getLastUpdateCheck()]);
 
   if (!v2 || !v2.version) return false;
 
@@ -407,23 +403,8 @@ export async function setSearchSourceStorage(source) {
 }
 
 export async function getSearchSourceStorage() {
-  return await getItem("searchSource");
-}
-
-export async function setZhihuCookies(cookies) {
-  return setItem("zhihuCookies", cookies);
-}
-
-export async function getZhihuCookies() {
-  return await getItem("zhihuCookies");
-}
-
-export async function removeZhihuCookies() {
-  return setItem("zhihuCookies", null);
-}
-
-export async function removeXhsCookies() {
-  return setItem("xhsCookies", null);
+  const source = await getItem("searchSource");
+  return source || "https://www.bing.com/search?q=";
 }
 
 export async function setCurrentSearchSource(source) {
@@ -437,22 +418,14 @@ export async function getCurrentSearchSource() {
 export async function setGetPageCount(count) {
   const currentCount = await getGetPageCount();
   const newCount = Number(currentCount || 0) + Number(count || 0);
-  console.log("currentCount", newCount);
   return setItem("getPageCount", newCount);
 }
 
 export async function getGetPageCount() {
-  return getItem("getPageCount") || 0;
+  const count = await getItem("getPageCount");
+  return count || 0;
 }
 
 export async function removeGetPageCount() {
   return setItem("getPageCount", null);
-}
-
-export async function setXhsCookies(cookies) {
-  return setItem("xhsCookies", cookies);
-}
-
-export async function getXhsCookies() {
-  return getItem("xhsCookies");
 }

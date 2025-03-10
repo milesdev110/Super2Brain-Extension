@@ -26,6 +26,8 @@ const SettingsContent = ({
   setIsShowModal,
   pointCosts,
   setIsAddPoint,
+  previewLight,
+  setPreviewLight,
 }) => {
   const [activeTab, setActiveTab] = useState("基础设置");
 
@@ -59,6 +61,8 @@ const SettingsContent = ({
               setIsShowModal={setIsShowModal}
               setActiveTab={setActiveTab}
               setIsAddPoint={setIsAddPoint}
+              previewLight={previewLight}
+              setPreviewLight={setPreviewLight}
             />
           </div>
         )}
@@ -87,6 +91,8 @@ export const SettingPage = ({
   setIsShowModal,
   pointCosts,
   setIsAddPoint,
+  previewLight,
+  setPreviewLight,
 }) => {
   const [modelList, setModelList] = useState([]);
 
@@ -119,21 +125,15 @@ export const SettingPage = ({
   }, []);
 
   const loadModelConfigs = async () => {
-    const [
-      deepseekApiKey,
-      openaiApiKey,
-      ollamaConfig,
-      lmstudioConfig,
-      customConfig,
-      openaiUrl,
-    ] = await Promise.all([
-      getDeepSeekApiKey(),
-      getOpenaiApiKey(),
-      getOllamaConfig(),
-      getLmstudioConfig(),
-      getCustomConfig(),
-      getOpenAiUrl(),
-    ]);
+    const [deepseekApiKey, openaiApiKey, ollamaConfig, lmstudioConfig, customConfig, openaiUrl] =
+      await Promise.all([
+        getDeepSeekApiKey(),
+        getOpenaiApiKey(),
+        getOllamaConfig(),
+        getLmstudioConfig(),
+        getCustomConfig(),
+        getOpenAiUrl(),
+      ]);
 
     return {
       deepseek: { apiKey: deepseekApiKey },
@@ -161,6 +161,8 @@ export const SettingPage = ({
     <>
       {userInput ? (
         <SettingsContent
+          previewLight={previewLight}
+          setPreviewLight={setPreviewLight}
           pointCosts={pointCosts}
           setModelList={setModelList}
           webPreview={webPreview}

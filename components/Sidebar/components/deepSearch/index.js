@@ -1,4 +1,4 @@
-import { Loader2, ChevronUp, ChevronDown, Check, XCircle } from "lucide-react";
+import { Loader2, ChevronUp, ChevronDown, Check, XCircle, StopCircle, Sparkle } from "lucide-react";
 import { getResponse } from "../../core/agent.js";
 import { marked } from "marked";
 import { PlaceHolder } from "./modules/placeHolder";
@@ -9,6 +9,30 @@ import { InputArea } from "./modules/inputArea";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { getGetPageCount, setGetPageCount, removeGetPageCount } from "../../../../public/storage";
+
+const commonClassNames = `text-sm text-black break-words leading-relaxed prose overflow-wrap break-word 
+    prose-p:leading-6 prose-p:pb-0 prose-p:mb-0  prose-p:text-black
+    prose-hr:hidden prose-hr:border-none prose-hr:m-0
+    prose-h1:mb-3 prose-h1:mt-3 prose-h1:text-black prose-h1:text-[24px]
+    prose-h2:mb-3 prose-h2:mt-3 prose-h2:text-black prose-h2:text-[22px]
+    prose-h3:mb-2 prose-h3:mt-2 prose-h3:text-black prose-h3:mt-4 prose-h3:mb-2 prose-h3:text-[20px]
+    prose-h4:text-black prose-h4:mb-2 prose-h4:mt-2 prose-h4:text-[18px]
+    prose-h5:text-black prose-h5:mb-2 prose-h5:mt-2 prose-h5:text-[16px]
+    prose-h6:text-black prose-h6:mb-2 prose-h6:mt-2 prose-h6:text-[16px]
+    prose-ul:list-decimal prose-ul:text-black prose-ul:mb-0
+    prose-ol:mb-0 prose-ol:text-black prose-ol:list-decimal prose-li:text-black   
+    prose-code:text-black
+    prose-pre:before:content-none prose-pre:after:content-none prose-pre:text-black prose-pre:rounded-md prose-pre:whitespace-pre-wrap prose-pre:bg-gray-100
+    prose-code:bg-gray-200 prose-code:text-black prose-code:p-1 prose-code:rounded-md prose-code:whitespace-pre-wrap prose-code:my-4 prose-code:mx-2
+    [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:w-full [&_pre]:block [&_pre]:whitespace-pre-wrap [&_pre]:break-words
+    [&_pre_code]:bg-gray-100 [&_pre_code]:w-full [&_pre_code]:p-0 [&_pre_code]:rounded-none [&_pre_code]:my-2 [&_pre_code]:mx-0 [&_pre_code]:block [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words
+    prose-blockquote:font-medium prose-blockquote:italic prose-blockquote:text-[var(--tw-prose-quotes)] prose-blockquote:border-l-[0.25rem] prose-blockquote:border-l-[var(--tw-prose-quote-borders)] prose-blockquote:mt-6 prose-blockquote:mb-6 prose-blockquote:pl-4
+    prose-table:mt-4 prose-table:mb-4 prose-table:w-full prose-table:overflow-hidden prose-table:border-collapse prose-table:border prose-table:border-gray-300
+    prose-th:py-2 prose-th:px-4 prose-th:border prose-th:border-gray-300 prose-th:bg-gray-100 prose-th:text-left
+    prose-td:py-2 prose-td:px-4 prose-td:border prose-td:border-gray-300
+    prose-tr:py-2 prose-tr:px-4 prose-tr:border prose-tr:border-gray-300
+`;
+
 const DeepSearch = ({
   query,
   setQuery,
@@ -29,12 +53,13 @@ const DeepSearch = ({
   setSelectedModelProvider,
   setActivatePage,
   setSelectedModelIsSupportsImage,
+  handleTerminate,
+  isTerminating,
 }) => {
   const [showTextArea, setShowTextArea] = useState(true);
   const messagesEndRef = useRef(null);
   const statusBoxRef = useRef(null);
   const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(false);
-  const [startTime, setStartTime] = useState(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const timerRef = useRef(null);
   const [pageCount, setPageCount] = useState(0);
@@ -73,13 +98,12 @@ const DeepSearch = ({
 
   // 计算经过的时间（秒）
   const getElapsedTime = () => {
-    if (!startTime) return 0;
-    return Math.floor((currentTime - startTime) / 1000);
+    if (!messages[messages.length - 1].startTime) return 0;
+    return Math.floor((currentTime - messages[messages.length - 1].startTime) / 1000);
   };
 
   const startTimer = () => {
     if (timerRef.current) return;
-    setStartTime(Date.now());
     timerRef.current = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -89,7 +113,6 @@ const DeepSearch = ({
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
-      setStartTime(null);
     }
   };
 
@@ -126,7 +149,6 @@ const DeepSearch = ({
     if (!query.trim() || isLoading) return;
     const question = query;
     setQuery("");
-    setStartTime(null);
     await onSendMessage(question, getResponse);
   };
 
@@ -163,6 +185,14 @@ const DeepSearch = ({
         }
       }
     );
+  };
+
+  const handleStopProcess = () => {
+    handleTerminate();
+    setQuery("");
+    setMessages([]);
+    setShowTextArea(false);
+    setIsDeepThingActive(false);
   };
 
   const renderMessages = () =>
@@ -231,6 +261,7 @@ const DeepSearch = ({
                                 text={status}
                                 isPulsing={idx === currentStatus.length - 1}
                                 onComplete={() => {}}
+                                instant={idx === 0}
                                 className={idx === currentStatus.length - 1 ? "animate-pulse" : ""}
                               />
                               {idx === currentStatus.length - 1 && (
@@ -248,7 +279,7 @@ const DeepSearch = ({
             {msg.isComplete && (
               <div className="px-1 relative group">
                 <div
-                  className="text-sm text-gray-700 break-words leading-relaxed prose"
+                  className={`${commonClassNames}`}
                   dangerouslySetInnerHTML={{
                     __html: marked(processLatex(msg.content), {
                       breaks: true,
@@ -285,10 +316,23 @@ const DeepSearch = ({
               )}
             </span>
             <span className="text-xs text-indigo-500/80 mt-1.5">
-              S2B正在操作你的浏览器进行深度搜索思考，请不要关闭侧边栏
+              S2B正在操作你的浏览器进行AI洞察分析，请不要关闭侧边栏
             </span>
           </div>
         </div>
+        <button
+          onClick={handleStopProcess}
+          disabled={isTerminating}
+          className={`min-w-[80px] flex p-2 rounded-lg transition-colors duration-200 justify-between 
+            ${
+              isTerminating
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-red-50 text-red-600 hover:bg-red-100"
+            }`}
+        >
+          <StopCircle className="w-5 h-5" />
+          <span>停止</span>
+        </button>
       </div>
     </div>
   );
@@ -299,7 +343,6 @@ const DeepSearch = ({
     const fetchPageCount = async () => {
       try {
         const count = await getGetPageCount();
-        console.log("count", count);
         setPageCount(count || 0);
       } catch (error) {
         console.error("获取页面计数失败:", error);
@@ -328,7 +371,9 @@ const DeepSearch = ({
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
-                    <span>S2B正在深度思考中{pageCount > 0 && `(已阅读 ${pageCount} 个网页)`}</span>
+                    <span>
+                      S2B进行AI洞察分析{pageCount > 0 && `(已阅读网页个数 ${pageCount} )`}
+                    </span>
                   </>
                 ) : messages[messages.length - 1]?.errorTitle ? (
                   <>
@@ -337,8 +382,7 @@ const DeepSearch = ({
                   </>
                 ) : (
                   <>
-                    <Check className="w-5 h-5 text-green-500" />
-                    <span>深度思考搜索完成</span>
+                    <span>AI洞察分析完成</span>
                   </>
                 )}
               </h1>
@@ -351,7 +395,7 @@ const DeepSearch = ({
         <div ref={messagesEndRef} />
       </div>
       <div className="flex-shrink-0 p-2">
-        {!isLoading && (
+        {(!isLoading || isTerminating) && (
           <div className="relative">
             {messages.length === 0 && (
               <InputArea
@@ -380,7 +424,7 @@ const DeepSearch = ({
             )}
           </div>
         )}
-        {isLoading && (
+        {isLoading && !isTerminating && (
           <div className="px-2">
             <ThinkingCard />
           </div>

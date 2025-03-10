@@ -1,13 +1,26 @@
-import { useState, useEffect } from "react";
-import { setWebPreview as setWebPreviewStorage } from "../../../../../public/storage";
+import { useState } from "react";
+import {
+  setWebPreview as setWebPreviewStorage,
+  setPreviewLight as setPreviewLightStorage,
+} from "../../../../../public/storage";
 import { CheckboxOption } from "./baseModel/module/checkOption";
 import { PointsCard } from "./baseModel/module/pointCard";
+
 const notificationOptions = [
   {
     id: "web-preview",
-    label: "网页速览",
-    description: "每次打开Super2Brain侧边栏的时候，会自动在生成速览。",
-    defaultChecked: true,
+    label: "网页自动速览",
+    description:
+      "开启该功能后，每当打开Super2Brain侧边栏的时候，切换页面会自动生成当前网页的速览。",
+    defaultChecked: false,
+    checked: false,
+  },
+  {
+    id: "preview-light",
+    label: "预览灯光效果",
+    description: "开启该功能后，每次生成网页速览的时候，页面会显示呼吸灯效果。",
+    defaultChecked: false,
+    checked: false,
   },
 ];
 
@@ -18,8 +31,11 @@ const BaseModel = ({
   setActiveTab,
   pointCosts,
   setIsAddPoint,
+  previewLight,
+  setPreviewLight,
 }) => {
   const [localWebPreview, setLocalWebPreview] = useState(webPreview);
+  const [localPreviewLight, setLocalPreviewLight] = useState(previewLight);
 
   const handleWebPreviewChange = async (checked) => {
     await setWebPreviewStorage(checked);
@@ -27,25 +43,43 @@ const BaseModel = ({
     setLocalWebPreview(checked);
   };
 
-  const options = notificationOptions.map((option) => ({
-    ...option,
-    checked: webPreview,
-    onChange: handleWebPreviewChange,
-  }));
+  const handlePreviewLightChange = async (checked) => {
+    await setPreviewLightStorage(checked);
+    setPreviewLight(checked);
+    setLocalPreviewLight(checked);
+  };
+
+  const getOptionConfig = (optionId) => {
+    switch (optionId) {
+      case "web-preview":
+        return {
+          checked: localWebPreview,
+          onChange: handleWebPreviewChange,
+        };
+      case "preview-light":
+        return {
+          checked: localPreviewLight,
+          onChange: handlePreviewLightChange,
+        };
+      default:
+        return {
+          checked: false,
+          onChange: () => {},
+        };
+    }
+  };
 
   return (
     <div className="px-8 py-4">
       <fieldset>
         <legend className="sr-only">Notifications</legend>
         <div className="space-y-5">
-          {options.map((option) => (
-            <CheckboxOption
-              key={option.id}
-              {...option}
-              checked={localWebPreview}
-              onChange={handleWebPreviewChange}
-            />
-          ))}
+          {notificationOptions.map((option) => {
+            const { checked, onChange } = getOptionConfig(option.id);
+            return (
+              <CheckboxOption key={option.id} {...option} checked={checked} onChange={onChange} />
+            );
+          })}
         </div>
         <PointsCard
           setIsAddPoint={setIsAddPoint}

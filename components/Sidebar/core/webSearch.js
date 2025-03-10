@@ -2,7 +2,6 @@ import { getSearchSourceStorage } from "../../../public/storage";
 
 export const extractUrls = async (html) => {
   let searchSource = await getSearchSourceStorage();
-  console.log("---===---", searchSource);
   if (!searchSource) {
     searchSource = "https://www.bing.com/search?q=";
   }
@@ -15,7 +14,6 @@ export const extractUrls = async (html) => {
     /chrome\.google\.com\/webstore/,
     /addons\.mozilla\.org/,
     /microsoftedge\.microsoft\.com\/addons/,
-    /zhihu\.com/,
     /xiaohongshu\.com/,
     /xhs\.com/,
     /doubleclick\.net/,
@@ -72,7 +70,16 @@ export const extractUrls = async (html) => {
           !isExcluded(url, title, description)
       )
       .slice(0, 3);
+  } else if (searchSource.includes("zhihu.com")) {
+    return Array.from(doc.querySelectorAll(".b_algo"))
+      .map((result) => ({
+        url: result.querySelector("h2 a")?.href.includes("zhihu.com")
+          ? result.querySelector("h2 a")?.href
+          : "",
+        title: result.querySelector("h2 a")?.textContent?.trim() || "无标题",
+        description: result.querySelector(".b_caption p")?.textContent?.trim() || "",
+      }))
+      .slice(0, 3);
   }
-
   return [];
 };

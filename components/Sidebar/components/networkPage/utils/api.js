@@ -7,7 +7,6 @@ export const fetchStreamResponse = async (
   provider = "super2brain",
   apiKey = ""
 ) => {
-  console.log(baseUrl, model, provider, apiKey);
   if (baseUrl?.includes("deepseek") && model?.toLowerCase() === "deepseek-r1") {
     model = "deepseek-reasoner";
   } else if (baseUrl?.includes("deepseek") && model?.toLowerCase() === "deepseek-v3") {
@@ -64,7 +63,7 @@ export const fetchStreamResponse = async (
     }
   } catch (error) {
     console.error(`${provider} 请求发送失败:`, error);
-    throw error;
+    throw new Error(`请求失败: ${error.message}`);
   }
 };
 
@@ -91,15 +90,24 @@ export const handleStreamResponse = async (stream, onProgress) => {
           const cleanLine = line.replace(/^data:\s*/, "").trim();
           if (!cleanLine) continue;
 
+          if (cleanLine.includes("Trying to keep the first ")) {
+            throw new Error("请切换比较大模型的API");
+          }
+
           const data = JSON.parse(cleanLine);
           if (
             data?.choices &&
             (data?.choices[0]?.delta?.content !== "" ||
-              data?.choices[0]?.delta?.reasoning_content !== "")
+              data?.choices[0]?.delta?.reasoning_content !== "" ||
+              data?.choices[0]?.finish_reason)
           ) {
             fullContent += data?.choices[0]?.delta?.content || "";
             reasoningContent += data?.choices[0]?.delta?.reasoning_content || "";
-            if (data?.choices[0]?.delta?.content || data?.choices[0]?.delta?.reasoning_content) {
+            if (
+              data?.choices[0]?.delta?.content ||
+              data?.choices[0]?.delta?.reasoning_content ||
+              data?.choices[0]?.finish_reason
+            ) {
               onProgress?.(data);
             }
           } else {
@@ -107,6 +115,9 @@ export const handleStreamResponse = async (stream, onProgress) => {
           }
         } catch (e) {
           console.error("解析流数据失败:", e, "原始行数据:", line);
+          if (line.includes("Trying to keep the first ")) {
+            throw new Error("请切换比较大模型的API");
+          }
         }
       }
     }

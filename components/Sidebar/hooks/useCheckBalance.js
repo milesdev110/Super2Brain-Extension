@@ -3,9 +3,7 @@ import { useState, useEffect } from "react";
 import { getUserInput } from "../../../public/storage";
 
 const fetchPoints = async () => {
-  const response = await fetch(
-    `https://extension-update.oss-cn-beijing.aliyuncs.com/point.json`
-  );
+  const response = await fetch(`https://extension-update.oss-cn-beijing.aliyuncs.com/point.json`);
   if (!response.ok) {
     throw new Error(`获取点数失败: ${response.status}`);
   }
@@ -56,10 +54,7 @@ export const useCheckBalance = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [pointsData, balanceData] = await Promise.all([
-          fetchPoints(),
-          fetchBalance(),
-        ]);
+        const [pointsData, balanceData] = await Promise.all([fetchPoints(), fetchBalance()]);
         setPointsUsed(pointsData);
         setBalance(balanceData.balance);
       } catch (error) {
@@ -111,17 +106,13 @@ export const useCheckBalance = () => {
     }
   };
 
-  const calculateModelCalls = (rounds) => {
-    const check = rounds + 1;
+  const calculateModelCalls = (maxDepth) => {
+    const baseCalls = 1 + 2 + 3 + 1;
+    const additionalCalls = (maxDepth - 1) * (3 + 2 * 3);
 
-    const selectModelTime = check * 15;
+    const totalCalls = baseCalls + additionalCalls;
 
-    const baseModelTime = check * 2;
-
-    return {
-      selectModelTime,
-      baseModelTime,
-    };
+    return totalCalls;
   };
 
   return {

@@ -1,4 +1,6 @@
 import { fetchStreamResponse, handleStreamResponse } from "./api";
+import { processDocument } from "./documentProcess";
+
 export const createWebContent = (url, content, query) => ({
   url,
   content: content || "",
@@ -6,12 +8,7 @@ export const createWebContent = (url, content, query) => ({
   timestamp: new Date().toISOString(),
 });
 
-export const createThingAgent = ({
-  apiKey,
-  model = "gpt-4o-mini",
-  baseURL,
-  provider,
-}) => {
+export const createThingAgent = ({ apiKey, model = "gpt-4o-mini", baseURL, provider }) => {
   if (model === "Deepseek-R1") {
     model = "asoner";
   } else if (model === "Deepseek-V3") {
@@ -19,15 +16,8 @@ export const createThingAgent = ({
   }
 
   const fetchCompletion = async (messages, stream = false) => {
-    console.log("apiKey", apiKey);
     if (!stream) {
-      const response = await fetchStreamResponse(
-        messages,
-        model,
-        baseURL,
-        provider,
-        apiKey
-      );
+      const response = await fetchStreamResponse(messages, model, baseURL, provider, apiKey);
       const content = await handleStreamResponse(response);
       return {
         choices: [
@@ -37,15 +27,14 @@ export const createThingAgent = ({
         ],
       };
     }
-    return handleStream(
-      await fetchStreamResponse(messages, model, baseURL, provider, apiKey)
-    );
+    return handleStream(await fetchStreamResponse(messages, model, baseURL, provider, apiKey));
   };
 
   const handleStream = async (response, onStreamUpdate) => {
     let fullContent = "";
     let fullReasoningContent = "";
     let flag = false;
+    let thinkingFlag = false;
     let lastUsage = {
       prompt_tokens: 0,
       completion_tokens: 0,
@@ -54,29 +43,84 @@ export const createThingAgent = ({
 
     await handleStreamResponse(response, (data) => {
       const { delta } = data?.choices[0] || {};
+      const currentContent = delta?.content || "";
 
-      if (delta?.content.includes("<think>")) {
+      // 处理 <think> 标签
+      if (currentContent.includes("<think>")) {
         flag = true;
       }
-
-      if (delta?.content.includes("</think>")) {
+      if (currentContent.includes("</think>")) {
         flag = false;
       }
 
-      if (flag) {
-        fullReasoningContent += delta?.content || "";
-      } else {
-        fullContent += delta?.content || "";
-        fullReasoningContent += delta?.reasoning_content || "";
-        lastUsage = data?.usage || lastUsage;
-
-        onStreamUpdate?.({
-          content: fullContent,
-          reasoningContent: fullReasoningContent,
-        });
+      // 处理 ```thinking 格式
+      if (!thinkingFlag && currentContent.includes("```thinking")) {
+        thinkingFlag = true;
+        const parts = currentContent.split("```thinking");
+        if (parts.length > 1) {
+          fullContent += parts[0];
+          fullReasoningContent += parts[1];
+        } else {
+          fullReasoningContent += currentContent;
+        }
+        return; // 跳过后续处理
       }
 
+      // 处理 thinking 模式下的结束标记
+      if (thinkingFlag && currentContent.includes("```")) {
+        const parts = currentContent.split("```");
+        fullReasoningContent += parts[0];
+
+        if (parts.length > 1) {
+          fullContent += parts.slice(1).join("```");
+        }
+
+        thinkingFlag = false;
+      } else if (flag || thinkingFlag) {
+        // 在 thinking 模式下，内容添加到 reasoning
+        fullReasoningContent += currentContent;
+      } else {
+        // 正常模式，内容添加到 content
+        fullContent += currentContent;
+        fullReasoningContent += delta?.reasoning_content || "";
+        lastUsage = data?.usage || lastUsage;
+      }
+
+      // 检查 thinking 模式是否应该结束
+      if (thinkingFlag) {
+        const combinedContent = fullReasoningContent;
+        const matches = combinedContent.match(/```/g) || [];
+        if (matches.length % 2 === 0 && matches.length > 0) {
+          thinkingFlag = false;
+        }
+      }
+
+      // 回调更新
+      onStreamUpdate?.({
+        content: fullContent,
+        reasoningContent: fullReasoningContent,
+      });
+
       if (data?.choices[0]?.finish_reason === "stop") {
+        // 最终清理
+        const thinkingBlockRegex = /```thinking([\s\S]*?)```/g;
+        const thinkingMatches = [...fullContent.matchAll(thinkingBlockRegex)];
+
+        if (thinkingMatches.length > 0) {
+          const thinkingContent = thinkingMatches.map((match) => match[1].trim()).join("\n");
+          fullReasoningContent += thinkingContent;
+          fullContent = fullContent.replace(thinkingBlockRegex, "");
+        }
+
+        const thinkTagRegex = /<think>([\s\S]*?)<\/think>/g;
+        const thinkTagMatches = [...fullContent.matchAll(thinkTagRegex)];
+
+        if (thinkTagMatches.length > 0) {
+          const thinkTagContent = thinkTagMatches.map((match) => match[1].trim()).join("\n");
+          fullReasoningContent += thinkTagContent;
+          fullContent = fullContent.replace(thinkTagRegex, "");
+        }
+
         onStreamUpdate?.({
           content: fullContent,
           reasoningContent: fullReasoningContent,
@@ -125,7 +169,7 @@ export const createThingAgent = ({
       documents.map(async (doc) => {
         onStatusUpdate?.(doc.url, 1);
 
-        const response = await fetchCompletion([
+        const responseContent = await processDocument([
           { role: "system", content: conversationPrompt },
           ...contextMessages,
           {
@@ -135,7 +179,7 @@ export const createThingAgent = ({
         ]);
 
         onStatusUpdate?.(doc.url, 2);
-        return response?.choices[0]?.message?.content;
+        return responseContent;
       })
     );
 
@@ -163,13 +207,7 @@ export const createThingAgent = ({
   };
 
   return {
-    chat: async (
-      query,
-      documents,
-      messageHistory = [],
-      onStatusUpdate,
-      onStreamUpdate
-    ) => {
+    chat: async (query, documents, messageHistory = [], onStatusUpdate, onStreamUpdate) => {
       try {
         return await processDocuments(
           query,

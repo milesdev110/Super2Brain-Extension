@@ -1,13 +1,12 @@
 import { Plus, Send, Trash2, Search, RefreshCw } from "lucide-react";
 import { Tooltip } from "react-tooltip";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useDebugValue } from "react";
 import { super2brainModel } from "../../config/models.js";
 import { MessageRenderer } from "./modules/MessageRenderer";
 import { ModelSelector } from "../common/modelSelect.js";
 import { useSearchEngine } from "../../hooks/useSearchEngine";
-import { BsBing } from "react-icons/bs";
-import { SiZhihu, SiXiaohongshu } from "react-icons/si";
 import { ModelSelector2 } from "../common/modelSelect2";
+
 const NetworkSearch = ({
   userInput,
   setActivatePage,
@@ -109,6 +108,7 @@ const NetworkSearch = ({
     <div className="w-full h-[calc(100vh-8px)] rounded-xl flex flex-col bg-white">
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 p-2 space-y-4">
         <MessageRenderer
+          searchEnabled={searchEnabled}
           setMessage={setMessage}
           messages={message}
           setQuery={setQuery}
@@ -117,6 +117,9 @@ const NetworkSearch = ({
           handleNetworkSubmit={handleNetworkSubmit}
           isLoading={isLoading}
           setActivatePage={setActivatePage}
+          startTimer={startTimer}
+          stopTimer={stopTimer}
+          setNetworkElapsedTime={setNetworkElapsedTime}
         />
       </div>
 
@@ -173,9 +176,9 @@ const NetworkSearch = ({
               placeholder:text-gray-400 sm:text-sm/6"
             placeholder="请输入您的问题..."
           />
-          <div className="p-2">
-            <div className="flex items-center gap-2 justify-between">
-              <div className="flex">
+          <div className="p-2 flex">
+            <div className="flex flex-1 items-center justify-between max-w-full">
+              <div className="flex flex-1" style={{ minWidth: "100px", maxWidth: "80%" }}>
                 {!message || message.length === 0 ? (
                   <ModelSelector
                     isOpen={isOpen}
@@ -193,7 +196,7 @@ const NetworkSearch = ({
                     setSelectedModel={setNetworkSelectedModel}
                   />
                 ) : (
-                  <div className="invisible">
+                  <div style={{ display: "none" }}>
                     <ModelSelector
                       isOpen={false}
                       setIsOpen={() => {}}
@@ -212,7 +215,7 @@ const NetworkSearch = ({
                   </div>
                 )}
 
-                {message && message.length === 0 ? (
+                {searchEnabled ? (
                   <ModelSelector2 useInput={userInput} />
                 ) : (
                   <div className="invisible">
@@ -221,7 +224,7 @@ const NetworkSearch = ({
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-end">
                 <button
                   onClick={handleMessageSubmit}
                   disabled={!userInput || !query.trim() || isLoading || !isSendAgain}

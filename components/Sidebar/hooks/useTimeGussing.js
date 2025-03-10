@@ -4,10 +4,9 @@ const useTimeGussing = () => {
   const [needTime, setNeedTime] = useState(0);
 
   const getNeedTime = (maxDepth) => {
-    const baseTime = 5;
+    const baseTime = 2;
 
-    const getExtraTimePerRound = () =>
-      Math.floor(Math.random() * (6 - 3 + 1) + 3);
+    const getExtraTimePerRound = () => Math.floor(Math.random() * (3 - 2 + 1) + 2);
 
     const extraRounds = maxDepth - 2;
 

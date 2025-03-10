@@ -36,8 +36,18 @@ const ModelSelector = ({
       }
     };
 
+    const handleWindowClick = (event) => {
+      if (!dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("mousedown", handleWindowClick);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("mousedown", handleWindowClick);
+    };
   }, [setIsOpen]);
 
   useEffect(() => {
@@ -105,7 +115,11 @@ const ModelSelector = ({
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div
+      className="relative flex items-center"
+      ref={dropdownRef}
+      style={{ minWidth: "10%", maxWidth: "60%" }}
+    >
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-xl shadow-lg z-10 w-[200px] overflow-hidden">
           <div className="py-2 max-h-[800px] overflow-y-auto">
@@ -179,24 +193,16 @@ const ModelSelector = ({
       )}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          maxWidth: "130px",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "clip",
-        }}
-        className={`mt-1 ml-1 flex items-center px-3 py-2
+        className={`flex w-full items-center px-3 py-2
           rounded-xl 
           border border-indigo-300
           transition-all duration-200
           shadow-sm
           ${"cursor-pointer bg-indigo-500 hover:bg-indigo-400 hover:shadow-md active:scale-[0.98]"}`}
       >
-        <Bot className="w-4 h-4 text-white" />
-        <span className="text-sm text-white ml-2 font-medium overflow-hidden whitespace-nowrap flex-1">
-          {selectedModel}
-        </span>
-        <ChevronDown className="w-4 h-4 text-white/80 mr-2" />
+        <Bot className="w-4 h-4 text-white min-w-[16px] flex-shrink-0" />
+        <span className="text-sm text-white ml-2 font-medium truncate">{selectedModel}</span>
+        <ChevronDown className="w-4 h-4 text-white/80 ml-1 flex-shrink-0" />
       </div>
     </div>
   );
@@ -214,6 +220,9 @@ const ModelGroup = ({
 }) => {
   const enabledModels = models.filter((model) => !model.disabled);
   if (enabledModels.length === 0 && !customModelsDisabled) return null;
+
+  // 获取窗口高度并设置最大高度
+  const maxHeight = window.innerHeight * 0.6; // 设置为窗口高度的80%
 
   return (
     <>
@@ -238,34 +247,36 @@ const ModelGroup = ({
           </span>
         </div>
       ) : (
-        enabledModels.map((model) => (
-          <div
-            key={model.id}
-            className={`px-4 py-2 text-sm transition-all duration-200 
-                      hover:bg-indigo-50 flex items-center justify-between group
-                      ${!useInput ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
-                      ${
-                        selectedModel === model.id && selectedModelProvider === model.provider
-                          ? "text-indigo-600 bg-indigo-50"
-                          : "text-gray-600"
-                      }`}
-            onClick={() => onModelSelect(model)}
-          >
-            <div className="group-hover:text-indigo-600 pl-4 flex items-center">
-              {model.supportsImage ? (
-                <>
-                  <Scissors className="w-3 h-3 transform -rotate-90 mr-1 -translate-x-4 text-indigo-600" />
-                  <span className="-ml-3">{model.id}</span>
-                </>
-              ) : (
-                <span>{model.id}</span>
+        <div style={{ maxHeight: `${maxHeight}px`, overflowY: "auto" }}>
+          {enabledModels.map((model) => (
+            <div
+              key={model.id}
+              className={`px-4 py-2 text-sm transition-all duration-200 
+                        hover:bg-indigo-50 flex items-center justify-between group
+                        ${!useInput ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+                        ${
+                          selectedModel === model.id && selectedModelProvider === model.provider
+                            ? "text-indigo-600 bg-indigo-50"
+                            : "text-gray-600"
+                        }`}
+              onClick={() => onModelSelect(model)}
+            >
+              <div className="group-hover:text-indigo-600 pl-4 flex items-center">
+                {model.supportsImage ? (
+                  <>
+                    <Scissors className="w-3 h-3 transform -rotate-90 mr-1 -translate-x-4 text-indigo-600 min-w-[12px]" />
+                    <span className="-ml-3 overflow-hidden text-ellipsis">{model.id}</span>
+                  </>
+                ) : (
+                  <span className="overflow-hidden text-ellipsis">{model.id}</span>
+                )}
+              </div>
+              {selectedModel === model.id && selectedModelProvider === model.provider && (
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 min-w-[6px] ml-2" />
               )}
             </div>
-            {selectedModel === model.id && selectedModelProvider === model.provider && (
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
-            )}
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </>
   );

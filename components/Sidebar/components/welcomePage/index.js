@@ -1,6 +1,6 @@
-import { Sparkle, ScanEye } from "lucide-react";
+import { ScanEye, Sparkle } from "lucide-react";
 import { MarkdownRenderer } from "./modules/parseMrakdown";
-import { CouldNotGetWebContent } from "./modules/couldNotGetWebContent";
+import { Question } from "./modules/question";
 import { NoLogin } from "./modules/noLogin";
 import { Loading } from "../common/loading";
 
@@ -15,23 +15,24 @@ const WelcomePage = ({
   pageSummary,
   pageCriticalAnalysis,
   setActivatePage,
+  fetchSummary,
+  fetchAnalysis,
+  isSpecialLoading,
 }) => {
   if (!userInput) {
     return <NoLogin setActivatePage={setActivatePage} />;
   }
-
-  if (!webPreview) {
-    return <CouldNotGetWebContent setActivatePage={setActivatePage} />;
-  }
-
   return (
     <>
-      {pageLoading || !pageContent ? (
-        <div className="w-full h-full rounded-l-xl flex items-center justify-center bg-white border-2 border-blue-200 relative before:absolute before:inset-0 before:rounded-l-xl before:animate-breathing before:pointer-events-none">
+      <div className="fixed top-2 right-14 w-10 h-10 rounded-xl bg-transparent hover:bg-gray-100  z-50">
+        <Question />
+      </div>
+      {isSpecialLoading || pageLoading || !pageContent ? (
+        <div className="w-full h-full rounded-l-xl flex items-center justify-center bg-white border-2 border-blue-200 relative before:absolute before:inset-0 before:rounded-l-xl before:pointer-events-none">
           <div className="p-8">
             <div className="flex flex-col items-center justify-center gap-6">
               <div className="w-20 h-20 bg-blue-50 rounded-xl flex items-center justify-center">
-                <ScanEye className="w-10 h-10 text-blue-500" />
+                <Sparkle className="w-10 h-10 text-blue-500" />
               </div>
             </div>
 
@@ -60,8 +61,14 @@ const WelcomePage = ({
         </div>
       ) : (
         <div className="w-full h-[calc(100vh-8px)] rounded-xl flex flex-col bg-white animate-fadeIn">
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 p-2 space-y-4">
+          <div className="flex-1 overflow-y-auto scrollbar-hidden p-2 space-y-4">
             <MarkdownRenderer
+              setActivatePage={setActivatePage}
+              webPreview={webPreview}
+              fetchAnalysis={fetchAnalysis}
+              currentUrl={currentUrl}
+              pageContent={pageContent}
+              fetchSummary={fetchSummary}
               currentUrlTab={currentUrlTab}
               setCurrentUrlTab={setCurrentUrlTab}
               content={pageSummary}

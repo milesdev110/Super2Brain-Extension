@@ -6,13 +6,7 @@ import {
   checkLMStudioConnection,
 } from "../utils/check";
 import { useState } from "react";
-import {
-  X,
-  CheckCircle,
-  Loader2,
-  ArrowRight,
-  AlertTriangle,
-} from "lucide-react";
+import { X, CheckCircle, Loader2, ArrowRight, AlertTriangle } from "lucide-react";
 import {
   setDeepSeekApiKey,
   setOpenaiApiKey,
@@ -43,8 +37,7 @@ const API_INFO = {
     link: "https://platform.deepseek.com/",
   },
   openai: {
-    description:
-      "OpenAI 提供包括 GPT-4、GPT-3.5 等多个AI模型。登录 OpenAI 平台创建 API Key。",
+    description: "OpenAI 提供包括 GPT-4、GPT-3.5 等多个AI模型。登录 OpenAI 平台创建 API Key。",
     link: "https://platform.openai.com/api-keys",
   },
   ollama: {
@@ -65,13 +58,7 @@ const API_INFO = {
   },
 };
 
-const ModelSettings = ({
-  modelKey,
-  settings,
-  handleChange,
-  modelList,
-  setModelList,
-}) => {
+const ModelSettings = ({ modelKey, settings, handleChange, modelList, setModelList }) => {
   if (!API_INFO[modelKey]) {
     console.error(`未找到模型配置信息: ${modelKey}`);
     return null;
@@ -94,9 +81,7 @@ const ModelSettings = ({
   const verifyApiKey = async (apiKey, url) => {
     if (
       !settings[modelKey].url &&
-      (modelKey === "ollama" ||
-        modelKey === "lmstudio" ||
-        modelKey === "custom")
+      (modelKey === "ollama" || modelKey === "lmstudio" || modelKey === "custom")
     ) {
       setVerifyStatuses((prev) => ({
         ...prev,
@@ -140,18 +125,12 @@ const ModelSettings = ({
           }
           break;
         case "lmstudio": {
-          isValid = await checkLMStudioConnection(
-            settings[modelKey].url,
-            apiKey
-          );
+          isValid = await checkLMStudioConnection(settings[modelKey].url, apiKey);
           if (isValid) await setLmstudioConfig(settings[modelKey].url, apiKey);
           break;
         }
         case "custom": {
-          const failedResults = await validateAllCustomModels(
-            settings[modelKey].url,
-            apiKey
-          );
+          const failedResults = await validateAllCustomModels(settings[modelKey].url, apiKey);
           await setCustomConfig(settings[modelKey].url, apiKey);
           setFailedModels(failedResults);
           const updatedModelIds = await getCustomModelIds();
@@ -230,10 +209,7 @@ const ModelSettings = ({
           },
         }));
       } else if (type === "lmstudio") {
-        const isValid = await checkLMStudioConnection(
-          settings[type].url,
-          settings[type].apiKey
-        );
+        const isValid = await checkLMStudioConnection(settings[type].url, settings[type].apiKey);
         if (isValid) {
           await setLmstudioConfig(settings[type].url, settings[type].apiKey);
         }
@@ -245,10 +221,7 @@ const ModelSettings = ({
           },
         }));
       } else if (type === "ollama") {
-        const isValid = await checkOllamaConnection(
-          settings[type].url,
-          settings[type].apiKey
-        );
+        const isValid = await checkOllamaConnection(settings[type].url, settings[type].apiKey);
         if (isValid) {
           await setOllamaConfig(settings[type].url, settings[type].apiKey);
         }
@@ -288,9 +261,7 @@ const ModelSettings = ({
   };
 
   const removeModelId = async (indexToRemove) => {
-    const newModelIds = (modelList || []).filter(
-      (_, index) => index !== indexToRemove
-    );
+    const newModelIds = (modelList || []).filter((_, index) => index !== indexToRemove);
     setModelList(newModelIds);
     await setCustomModelIds(newModelIds);
   };
@@ -328,9 +299,7 @@ const ModelSettings = ({
               className="text-indigo-600 hover:text-indigo-500 ml-2 font-medium inline-flex items-center group"
             >
               了解更多
-              <span className="ml-1 group-hover:translate-x-0.5 transition-transform">
-                →
-              </span>
+              <span className="ml-1 group-hover:translate-x-0.5 transition-transform">→</span>
             </a>
           </p>
 
@@ -339,8 +308,11 @@ const ModelSettings = ({
               <p className="text-sm text-amber-700 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
                 <a
-                  href="#"
-                  className="inline-flex items-center group text-indigo-600"
+                  href={
+                    "https://shareai-lab.feishu.cn/wiki/RJsOwI38IiMlHAksNXpcD2v8nwf?from=from_copylink"
+                  }
+                  target="_blank"
+                  className="flex items-center group text-indigo-600 hover:underline"
                 >
                   {API_INFO[modelKey].infomation}
                 </a>
@@ -350,16 +322,12 @@ const ModelSettings = ({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">
-                服务器地址
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">服务器地址</label>
               <input
                 type="text"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                 placeholder={`例如: ${
-                  modelKey === "lmstudio"
-                    ? "http://localhost:1234"
-                    : "http://localhost:11434"
+                  modelKey === "lmstudio" ? "http://localhost:1234" : "http://localhost:11434"
                 }`}
                 value={settings[modelKey].url}
                 onChange={handleChange(modelKey, "url")}
@@ -443,9 +411,7 @@ const ModelSettings = ({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">
-                模型ID
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">模型ID</label>
               <div className="space-y-3">
                 {modelList?.length > 0 && (
                   <div className="flex flex-wrap gap-2 p-2 border border-gray-200 rounded-lg">
@@ -487,9 +453,7 @@ const ModelSettings = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">
-                API 端点
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">API 端点</label>
               <input
                 type="text"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
@@ -500,9 +464,7 @@ const ModelSettings = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">
-                API Key
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">API Key</label>
               <input
                 type="password"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
@@ -514,9 +476,7 @@ const ModelSettings = ({
 
             <div className="flex justify-end mt-4">
               <button
-                onClick={() =>
-                  verifyApiKey(settings.custom?.apiKey, settings.custom?.url)
-                }
+                onClick={() => verifyApiKey(settings.custom?.apiKey, settings.custom?.url)}
                 disabled={isVerifying}
                 className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-500 active:bg-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -549,9 +509,7 @@ const ModelSettings = ({
           )}
           {failedModels.length > 0 && (
             <div className="mt-4 p-3 bg-red-50 rounded-lg">
-              <h4 className="text-sm font-medium text-red-800 mb-2">
-                以下模型验证失败：
-              </h4>
+              <h4 className="text-sm font-medium text-red-800 mb-2">以下模型验证失败：</h4>
               <ul className="space-y-1">
                 {failedModels.map(({ modelId }) => (
                   <li key={modelId} className="text-sm text-red-700">
@@ -588,17 +546,13 @@ const ModelSettings = ({
               className="text-indigo-600 hover:text-indigo-500 ml-2 font-medium inline-flex items-center group"
             >
               获取API Key
-              <span className="ml-1 group-hover:translate-x-0.5 transition-transform">
-                →
-              </span>
+              <span className="ml-1 group-hover:translate-x-0.5 transition-transform">→</span>
             </a>
           </p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">
-                API Key
-              </label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">API Key</label>
               <input
                 type="password"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
@@ -626,12 +580,7 @@ const ModelSettings = ({
 
             <div className="flex justify-end mt-4">
               <button
-                onClick={() =>
-                  verifyApiKey(
-                    settings[modelKey].apiKey,
-                    settings[modelKey].url
-                  )
-                }
+                onClick={() => verifyApiKey(settings[modelKey].apiKey, settings[modelKey].url)}
                 disabled={isVerifying}
                 className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-500 active:bg-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -672,9 +621,7 @@ const ModelSettings = ({
       <div className="flex items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-            <span className="text-indigo-600 text-sm font-bold">
-              {modelName.charAt(0)}
-            </span>
+            <span className="text-indigo-600 text-sm font-bold">{modelName.charAt(0)}</span>
           </div>
           {modelName}配置
         </h3>
@@ -690,16 +637,13 @@ const ModelSettings = ({
             className="text-indigo-600 hover:text-indigo-500 ml-2 font-medium inline-flex items-center group"
           >
             获取API Key
-            <span className="ml-1 group-hover:translate-x-0.5 transition-transform">
-              →
-            </span>
+            <span className="ml-1 group-hover:translate-x-0.5 transition-transform">→</span>
           </a>
         </p>
 
         <div className="space-y-2">
           <label className="block text-xs font-medium text-gray-700">
-            输入API Key
-            并保存，输入完成后点击保存按钮，保存通过即可使用自定义模型
+            输入API Key 并保存，输入完成后点击保存按钮，保存通过即可使用自定义模型
           </label>
           <div>
             <input

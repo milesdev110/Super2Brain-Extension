@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Send, Plus } from "lucide-react";
-import { MODELS } from "../../../config/models";
+import { Send } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 import { createTags } from "../../../contants/activateBar";
 import { useScreenshotHandler } from "../../../hooks/useScreenshotHandler";
 import { ModelSelector } from "../../common/modelSelect";
 import { TagButton } from "./TagButton";
 import { AI_MODELS } from "../../../config/models";
+
 export const TextareaRef = ({
   useInput,
   onSubmit,
@@ -29,8 +29,7 @@ export const TextareaRef = ({
   const tagsContainerRef = useRef(null);
   const [isComposing, setIsComposing] = useState(false);
 
-  const { screenshotData, setScreenshotData, handleScreenshot } =
-    useScreenshotHandler();
+  const { screenshotData, setScreenshotData, handleScreenshot } = useScreenshotHandler();
 
   const currentModelSupportsImage = useMemo(() => {
     return AI_MODELS[selectedModel]?.supportsImage ?? false;
@@ -84,8 +83,7 @@ export const TextareaRef = ({
 
   const handleTagClick = useCallback(
     async (prompt, type) => {
-      if (isAiThinking || (type === "screenshot" && !currentModelSupportsImage))
-        return;
+      if (isAiThinking || (type === "screenshot" && !currentModelSupportsImage)) return;
 
       const actionMap = {
         mindmap: () =>
@@ -128,6 +126,29 @@ export const TextareaRef = ({
     },
     [inputValue, isAiThinking, isContentReady, handleSubmit, isComposing]
   );
+
+  // 添加侧边栏关闭监听
+  useEffect(() => {
+    const handleSidebarVisibilityChange = (event) => {
+      if (event.detail?.visible === false) {
+        // 侧边栏关闭时，隐藏呼吸灯
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, {
+              type: "HIDE_BREATHING_LIGHT",
+            });
+          }
+        });
+      }
+    };
+
+    // 监听自定义事件
+    window.addEventListener("sidebarVisibilityChange", handleSidebarVisibilityChange);
+
+    return () => {
+      window.removeEventListener("sidebarVisibilityChange", handleSidebarVisibilityChange);
+    };
+  }, []);
 
   return (
     <>
@@ -190,9 +211,7 @@ export const TextareaRef = ({
                     className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-800/80 
                       hover:bg-gray-900 flex items-center justify-center transition-colors duration-200"
                   >
-                    <span className="text-white text-xs leading-none">
-                      &times;
-                    </span>
+                    <span className="text-white text-xs leading-none">&times;</span>
                   </button>
                 </div>
               </div>
@@ -212,22 +231,25 @@ export const TextareaRef = ({
               text-gray-900 outline-none resize-none min-h-[100px] max-h-[300px]
               placeholder:text-gray-400 sm:text-sm/6"
           />
-          <div className="flex items-center justify-between px-2 py-1">
+          <div className="flex flex-1 items-center justify-between px-2 py-1">
             {messages.length === 0 ? (
-              <ModelSelector
-                messages={messages}
-                setActivatePage={setActivatePage}
-                useInput={useInput}
-                selectedModelProvider={selectedModelProvider}
-                selectedModelIsSupportsImage={selectedModelIsSupportsImage}
-                setSelectedModelProvider={setSelectedModelProvider}
-                setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-                selectedModel={selectedModel}
-                setSelectedModel={setSelectedModel}
-                setScreenshotData={setScreenshotData}
-              />
+              <>
+                <ModelSelector
+                  messages={messages}
+                  setActivatePage={setActivatePage}
+                  useInput={useInput}
+                  selectedModelProvider={selectedModelProvider}
+                  selectedModelIsSupportsImage={selectedModelIsSupportsImage}
+                  setSelectedModelProvider={setSelectedModelProvider}
+                  setSelectedModelIsSupportsImage={setSelectedModelIsSupportsImage}
+                  isOpen={isOpen}
+                  setIsOpen={setIsOpen}
+                  selectedModel={selectedModel}
+                  setSelectedModel={setSelectedModel}
+                  setScreenshotData={setScreenshotData}
+                />
+                <div className="flex-grow"></div>
+              </>
             ) : (
               <div className="invisible">
                 <ModelSelector
@@ -246,7 +268,7 @@ export const TextareaRef = ({
                 />
               </div>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-2">
               <button
                 onClick={handleSubmit}
                 disabled={!inputValue.trim() || isAiThinking}

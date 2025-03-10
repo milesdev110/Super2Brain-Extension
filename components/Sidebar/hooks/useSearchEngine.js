@@ -5,7 +5,6 @@ import {
   setSearchSourceStorage,
   getCurrentSearchSource as getCurrentSearchSourceStorage,
 } from "../../../public/storage";
-import { SiXiaohongshu } from "react-icons/si";
 
 const SEARCH_SOURCES = [
   {
@@ -59,16 +58,12 @@ const useSearchEngine = () => {
     await setSearchSourceStorage(source.searchUrl);
   };
   const getSearchSourceIcon = () => {
-    const searchSourceIcon = SEARCH_SOURCES.find(
-      (source) => source.value === searchSource
-    );
+    const searchSourceIcon = SEARCH_SOURCES.find((source) => source.value === searchSource);
     return searchSourceIcon?.icon;
   };
 
   const getSearchSourceName = () => {
-    const searchSourceName = SEARCH_SOURCES.find(
-      (source) => source.value === searchSource
-    );
+    const searchSourceName = SEARCH_SOURCES.find((source) => source.value === searchSource);
     return searchSourceName?.name;
   };
   return {

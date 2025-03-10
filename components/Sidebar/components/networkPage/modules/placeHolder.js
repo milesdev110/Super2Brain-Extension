@@ -1,5 +1,3 @@
-import { ArrowRight } from "lucide-react";
-
 const PlaceHolder = ({ Icon, title, description, setActivatePage }) => {
   return (
     <div className="flex-1 h-full flex items-center justify-center">

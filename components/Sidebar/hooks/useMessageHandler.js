@@ -3,6 +3,7 @@ import { getResponse } from "../components/networkPage/utils/index.js";
 import { createWebContent } from "../components/networkPage/utils/thingAgent.js";
 import { config } from "../../config/index";
 import { getUserInput } from "../../../public/storage.js";
+import { getSearchSourceStorage } from "../../../public/storage.js";
 
 const fetchRelatedQuestions = async (query, answer, userInput) => {
   const apiKey = await getUserInput();
@@ -85,28 +86,27 @@ export const useMessageHandler = (
   provider,
   checkBalance
 ) => {
+  // 针对于 deepseek 的模型ID的转变
   if (baseUrl.includes("deepseek.com") && model.toLowerCase() === "deepseek-r1") {
     model = "deepseek-reasoner";
   } else if (baseUrl.includes("deepseek.com") && model.toLowerCase() === "deepseek-v3") {
     model = "deepseek-chat";
   }
+  // 针对于 deepseek 的 API 的转变
   if (baseUrl.endsWith("/v1")) {
     baseUrl = baseUrl.slice(0, -3);
   }
+
   const [message, setMessage] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [state, setState] = useState(0);
+
   const filterUrls = (content, searchEngine) => {
     try {
-      if (typeof window === "undefined") return [];
-
       const parser = new DOMParser();
       const doc = parser.parseFromString(content, "text/html");
-
       let searchResults = [];
 
-      if (searchEngine === "bing") {
-        // 针对 Bing 的搜索结果选择器
+      if (searchEngine.includes("bing") && !searchEngine.includes("zhihu")) {
         searchResults = Array.from(doc.querySelectorAll(".b_algo")).map((result) => {
           const linkElement = result.querySelector("h2 a");
           const descElement = result.querySelector(".b_caption p");
@@ -117,13 +117,22 @@ export const useMessageHandler = (
             description: descElement?.textContent?.trim() || "",
           };
         });
-      } else if (searchEngine === "baidu") {
-        // 针对百度的搜索结果选择器
+      } else if (searchEngine.includes("baidu")) {
         searchResults = Array.from(doc.querySelectorAll(".result")).map((result) => {
           const linkElement = result.querySelector("h3 a");
           const descElement = result.querySelector(".c-abstract");
           return {
             url: linkElement?.href || "",
+            title: linkElement?.textContent?.trim() || "无标题",
+            description: descElement?.textContent?.trim() || "",
+          };
+        });
+      } else if (searchEngine.includes("zhihu")) {
+        searchResults = Array.from(doc.querySelectorAll(".b_algo")).map((result) => {
+          const linkElement = result.querySelector("h2 a");
+          const descElement = result.querySelector(".b_caption p");
+          return {
+            url: linkElement?.href.includes("zhihu.com") ? linkElement?.href : "",
             title: linkElement?.textContent?.trim() || "无标题",
             description: descElement?.textContent?.trim() || "",
           };
@@ -145,7 +154,6 @@ export const useMessageHandler = (
             /chrome\.google\.com\/webstore/,
             /addons\.mozilla\.org/,
             /microsoftedge\.microsoft\.com\/addons/,
-            /zhihu\.com/,
             /xiaohongshu\.com/,
             /xhs\.com/,
             /doubleclick\.net/,
@@ -219,16 +227,16 @@ export const useMessageHandler = (
         isCopied: false,
       };
 
-      if (baseUrl.includes("s2bapi.zima.pet")) {
-        const isEnough = await checkBalance(7, model, 3);
-        if (!isEnough) return;
-      }
-
       setMessage((prev) => [
         ...prev,
         { role: "user", content: query, isComplete: true },
         initialMessage,
       ]);
+
+      if (baseUrl.includes("s2bapi.zima.pet")) {
+        const isEnough = await checkBalance(7, model, 3);
+        if (!isEnough) return;
+      }
 
       const handleStreamProgress = async (progress) => {
         if (progress.state === 2) {
@@ -252,6 +260,11 @@ export const useMessageHandler = (
                   ...updatedMessage,
                   questionsLoading: true,
                   isStreaming: false,
+                  urlListData: newMessages[lastIndex].urlListData.map((item) => ({
+                    ...item,
+                    status: 2,
+                    iconBackground: "bg-green-500",
+                  })),
                 },
               ];
             });
@@ -271,7 +284,7 @@ export const useMessageHandler = (
                   {
                     ...newMessages[lastIndex],
                     ...updatedMessage,
-                    relatedQuestions,
+                    relatedQuestions: relatedQuestions || ["服务器繁忙，获取相关问题失败"],
                     questionsLoading: false,
                     isStreaming: false,
                     isComplete: true,
@@ -279,6 +292,7 @@ export const useMessageHandler = (
                 ];
               });
             } catch (error) {
+              console.error("获取相关问题失败:", error);
               setMessage((prev) => {
                 const newMessages = [...prev];
                 const lastIndex = newMessages.length - 1;
@@ -287,10 +301,9 @@ export const useMessageHandler = (
                   {
                     ...newMessages[lastIndex],
                     ...updatedMessage,
-                    content: "服务器繁忙，请切换其他模型或者检查网络",
-                    relatedQuestions: [],
-                    isSearching: false,
+                    relatedQuestions: ["服务器繁忙，获取相关问题失败"],
                     questionsLoading: false,
+                    isStreaming: false,
                     isComplete: true,
                   },
                 ];
@@ -326,12 +339,16 @@ export const useMessageHandler = (
                 throw new Error(`HTTP error! status: ${searchResponse.status}`);
               }
               const content = await searchResponse.text();
-              const isBing = progress.searchUrl.includes("bing.com") ? "bing" : "baidu";
-              const filteredUrls = filterUrls(content, isBing);
+              let searchEngine = await getSearchSourceStorage();
+              if (searchEngine.includes("zhihu")) {
+                searchEngine = "https://cn.bing.com/search?q=site%3A%2F%2Fzhihu.com%20";
+              }
+              const filteredUrls = filterUrls(content, searchEngine);
               processUrls = filteredUrls.slice(0, 5);
             } else {
               processUrls = progress.searchUrl;
             }
+
             setMessage((prev) =>
               updateLastAssistantMessage(prev, {
                 status: "fetching",
@@ -339,18 +356,22 @@ export const useMessageHandler = (
               })
             );
 
-            const extractResponse = await chrome.runtime.sendMessage({
-              action: "extractMultipleContents",
-              urls: processUrls.map((result) => result.url),
-            });
-
             setMessage((prev) =>
               updateLastAssistantMessage(prev, {
                 status: "analyzing",
                 statusMessage: "正在获取网页内容",
+                urlListData: processUrls.map((url) => ({
+                  ...url,
+                  status: 1,
+                  iconBackground: "bg-blue-500",
+                })),
               })
             );
 
+            const extractResponse = await chrome.runtime.sendMessage({
+              action: "extractMultipleContents",
+              urls: processUrls.map((result) => result.url),
+            });
             if (extractResponse.success) {
               const webContents = extractResponse.contents.map(({ url, content, title }) =>
                 createWebContent(url, content, query, title)
@@ -363,22 +384,28 @@ export const useMessageHandler = (
                 {}
               );
 
+              const extractedUrls = new Set(extractResponse.contents.map(({ url }) => url));
+
               const enrichedWebContents = webContents.map((webContent) => ({
                 ...webContent,
                 title: urlToTitleMap[webContent.url] || webContent.title,
               }));
 
-              setMessage((prev) =>
-                updateLastAssistantMessage(prev, {
-                  status: "generating",
-                  statusMessage: "正在理解网页内容",
-                  urlListData: enrichedWebContents.map((url) => ({
-                    ...url,
-                    status: 1,
-                    iconBackground: "bg-blue-500",
-                  })),
-                })
-              );
+              if (extractedUrls.size > 0) {
+                setMessage((prev) =>
+                  updateLastAssistantMessage(prev, {
+                    status: "generating",
+                    statusMessage: "正在理解网页内容",
+                    urlListData: processUrls.map((url) => ({
+                      ...url,
+                      status: extractedUrls.has(url.url) ? 1 : 3,
+                      iconBackground: extractedUrls.has(url.url) ? "bg-green-500" : "bg-red-500",
+                    })),
+                  })
+                );
+              } else {
+                throw new Error("请检查网络链接，没有搜索到网页内容");
+              }
 
               const response = await thinkingAgent.chat(
                 query,
@@ -443,21 +470,31 @@ export const useMessageHandler = (
                   isComplete: true,
                   status: "complete",
                   statusMessage: "",
-                  relatedQuestions: relatedQuestions,
+                  relatedQuestions: relatedQuestions || ["服务器繁忙，获取相关问题失败"],
                   questionsLoading: false,
                 })
               );
             }
           } catch (error) {
+            console.error("获取网页内容失败:", error);
             let erroeMessage = "服务器繁忙，请切换其他模型或者检查网络";
             if (error.message.includes("请先在登录知乎网页版后再使用知乎搜索源")) {
               erroeMessage = "请先在登录知乎网页版后再使用知乎搜索源";
+            }
+            if (error.message.includes("请切换比较大模型的API")) {
+              erroeMessage = "请切换比较大模型的API";
+            }
+            if (error.message.includes("403")) {
+              erroeMessage = "请检查该模型的跨域问题";
+            }
+            if (error.message.includes("没有搜索到网页内容")) {
+              erroeMessage = "请检查网络链接，没有搜索到网页内容";
             }
             setMessage((prev) =>
               updateLastAssistantMessage(prev, {
                 status: "error",
                 statusMessage: erroeMessage,
-                content: "服务器繁忙，请切换其他模型或者检查网络",
+                content: erroeMessage,
                 isComplete: true,
                 isStreaming: false,
                 isCopied: false,
@@ -479,11 +516,16 @@ export const useMessageHandler = (
         userInput
       );
     } catch (error) {
-      let erroeMessage = "服务器繁忙，请切换其他模型或者检查网络2222";
+      console.error("获取回答失败:", error);
+      let erroeMessage = "服务器繁忙，请切换其他模型或者检查网络";
       if (error.message.includes("请先在登录知乎网页版后再使用知乎搜索源")) {
         erroeMessage = "请先在登录知乎网页版后再使用知乎搜索源";
       } else if (error.message.includes("请先在登录小红书网页版后再使用小红书搜索源")) {
         erroeMessage = "请先在登录小红书网页版后再使用小红书搜索源";
+      } else if (error.message.includes("请切换比较大模型的API")) {
+        erroeMessage = "请切换比较大模型的API";
+      } else if (error.message.includes("403")) {
+        erroeMessage = "请检查该模型的跨域问题";
       }
       setMessage((prev) => {
         const newMessages = [...prev];
@@ -494,7 +536,7 @@ export const useMessageHandler = (
             ...newMessages[lastIndex],
             status: "error",
             statusMessage: erroeMessage,
-            content: "服务器繁忙，请切换其他模型或者检查网络",
+            content: erroeMessage,
             isComplete: true,
             isStreaming: false,
             isCopied: false,

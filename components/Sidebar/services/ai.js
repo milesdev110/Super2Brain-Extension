@@ -3,7 +3,6 @@ import { getUserInput } from "../../../public/storage.js";
 
 const fetchRelatedQuestions = async (messages, fullResponse) => {
   const apiKey = await getUserInput();
-  console.log(messages);
   const response = await fetch(`${config.baseUrl}/text/v1/chat/completions`, {
     method: "POST",
     headers: {
@@ -24,7 +23,7 @@ const fetchRelatedQuestions = async (messages, fullResponse) => {
           content: `基于以下问题和回答，生成3个用户可能会继续追问的后续问题：
           
         原问题：${
-          messages[messages.length - 2].content?.text || messages[messages.length - 2].content
+          messages[messages.length - 2].content?.text || messages[messages.length - 1].content
         }
         回答：${fullResponse}
 
@@ -261,7 +260,7 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
   if (!adapter) {
     throw new Error(`不支持的 AI 提供商: ${provider}`);
   }
-
+  let questionContent = "";
   try {
     const response = await fetch(`${cleanBaseUrl}${adapter.baseUrl}`, {
       method: "POST",
@@ -295,7 +294,7 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
     let fullReasoningContent = "";
     let lastChunkData = null;
     let flag = false;
-
+    let thinkingFlag = false;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -321,32 +320,63 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
               provider === "ollama"
             ) {
               if (chunkData.choices[0]?.delta) {
-                console.log(chunkData.choices[0].delta?.content);
-                if (chunkData.choices[0].delta?.content.includes("<think>")) flag = true;
-                if (chunkData.choices[0].delta?.content.includes("</think>")) flag = false;
+                const currentContent = chunkData.choices[0]?.delta?.content || "";
+
+                if (currentContent.includes("<think>")) flag = true;
+                if (currentContent.includes("</think>")) flag = false;
+
+                if (!thinkingFlag && currentContent.includes("```thinking")) {
+                  thinkingFlag = true;
+                  const parts = currentContent.split("```thinking");
+                  if (parts.length > 1) {
+                    fullContent += parts[0];
+                    fullReasoningContent += parts[1];
+                  } else {
+                    fullReasoningContent += currentContent;
+                  }
+                  continue;
+                }
 
                 if (chunkData.choices[0]?.delta?.reasoning_content) {
                   fullReasoningContent += chunkData.choices[0].delta.reasoning_content;
                 }
-                if (flag) {
-                  fullReasoningContent += chunkData.choices[0]?.delta?.content || "";
+
+                if (flag || thinkingFlag) {
+                  if (thinkingFlag && currentContent.includes("```")) {
+                    const parts = currentContent.split("```");
+                    fullReasoningContent += parts[0];
+
+                    if (parts.length > 1) {
+                      fullContent += parts.slice(1).join("```");
+                    }
+
+                    thinkingFlag = false;
+                  } else {
+                    fullReasoningContent += currentContent;
+                  }
                 } else {
-                  fullContent += chunkData.choices[0]?.delta?.content || "";
+                  fullContent += currentContent;
+                }
+
+                if (thinkingFlag) {
+                  const combinedContent = fullReasoningContent;
+                  const matches = combinedContent.match(/```/g) || [];
+                  if (matches.length % 2 === 0 && matches.length > 0) {
+                    thinkingFlag = false;
+                  }
                 }
               }
-            } else if (provider === "claude") {
-              fullContent += chunkData.delta?.text || "";
-            } else {
-              fullContent += chunkData.message?.content || "";
             }
+
             if (
               chunkData.choices[0]?.delta?.reason_content === "undefined" ||
               chunkData.choices[0]?.delta?.reason_content === null
             ) {
               fullReasoningContent = "";
             }
+
             if (options.onProgress) {
-              if (flag) {
+              if (flag || thinkingFlag) {
                 options.onProgress({
                   state: 1,
                   response: {
@@ -374,14 +404,24 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
       }
     }
 
-    const thinkRegex = /<think>(.*?)<\/think>/gs;
-    const thinkMatches = [...fullContent.matchAll(thinkRegex)];
-    if (thinkMatches.length > 0) {
-      fullContent = fullContent.replace(thinkRegex, "");
-      fullReasoningContent = thinkMatches.map((match) => match[1]).join("\n");
+    const thinkingBlockRegex = /```thinking([\s\S]*?)```/g;
+    const thinkingMatches = [...fullContent.matchAll(thinkingBlockRegex)];
+
+    if (thinkingMatches.length > 0) {
+      const thinkingContent = thinkingMatches.map((match) => match[1].trim()).join("\n");
+      fullReasoningContent += thinkingContent;
+      fullContent = fullContent.replace(thinkingBlockRegex, "");
     }
 
-    // 构造与原格式相同的响应
+    const thinkTagRegex = /<think>([\s\S]*?)<\/think>/g;
+    const thinkTagMatches = [...fullContent.matchAll(thinkTagRegex)];
+
+    if (thinkTagMatches.length > 0) {
+      const thinkTagContent = thinkTagMatches.map((match) => match[1].trim()).join("\n");
+      fullReasoningContent += thinkTagContent;
+      fullContent = fullContent.replace(thinkTagRegex, "");
+    }
+
     const simulatedResponse = {
       choices: [
         {

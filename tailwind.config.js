@@ -48,28 +48,28 @@ module.exports = {
             lineHeight: "1.5",
             h1: {
               fontWeight: "700",
-              fontSize: "1.4em",
+              fontSize: "1.2em",
               marginTop: "1em",
               marginBottom: "0.5em",
               lineHeight: "1.2",
             },
             h2: {
               fontWeight: "600",
-              fontSize: "1.15em",
+              fontSize: "1.1em",
               marginTop: "1.2em",
               marginBottom: "0.4em",
               lineHeight: "1.25",
             },
             h3: {
               fontWeight: "600",
-              fontSize: "1.05em",
+              fontSize: "1em",
               marginTop: "1em",
               marginBottom: "0.3em",
               lineHeight: "1.25",
             },
             h4: {
               fontWeight: "600",
-              fontSize: "1.1em",
+              fontSize: "1em",
               marginTop: "0.8em",
               marginBottom: "0.2em",
               lineHeight: "1.25",
@@ -77,7 +77,7 @@ module.exports = {
             p: {
               marginTop: "0.5em",
               marginBottom: "0.5em",
-              lineHeight: "1.5",
+              paddingBottom: "0 !important",
             },
             "ul, ol": {
               marginTop: "0.5em",
@@ -97,7 +97,7 @@ module.exports = {
             "pre code": {
               backgroundColor: "#1e1e1e",
               color: "#d4d4d4",
-              padding: "1.5rem",
+              padding: "0.5rem",
               fontSize: "1em",
               fontFamily: 'Consolas, Monaco, "Courier New", monospace',
               borderRadius: "0.5rem",
@@ -138,13 +138,13 @@ module.exports = {
               listStyleType: "disc",
               marginTop: "1.25em",
               marginBottom: "1.25em",
-              paddingLeft: "1.625em",
+              paddingLeft: "1em",
             },
             ol: {
               listStyleType: "decimal",
               marginTop: "1.25em",
               marginBottom: "1.25em",
-              paddingLeft: "1.625em",
+              paddingLeft: "1em",
             },
             a: {
               color: "var(--tw-prose-links)",
@@ -175,7 +175,7 @@ module.exports = {
               fontSize: "0.875em",
             },
             "tbody tr": {
-              borderTopWidth: "1px",
+              borderTopWidth: "10px",
               borderColor: "#e5e7eb",
               "&:hover": {
                 backgroundColor: "#f9fafb",
@@ -185,6 +185,12 @@ module.exports = {
               padding: "1rem",
               color: "#4b5563",
               fontSize: "0.875em",
+            },
+            th: {
+              padding: "1rem",
+            },
+            td: {
+              padding: "1rem",
             },
             br: {
               display: "none",

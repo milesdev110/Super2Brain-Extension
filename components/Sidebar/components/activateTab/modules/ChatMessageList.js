@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Globe,
   ChevronRight,
+  FileSearch,
 } from "lucide-react";
 import { Loading } from "../../common/loading";
 import katex from "katex";
@@ -31,7 +32,28 @@ const MessageContent = ({
     setIsContentExpanded(!isContentExpanded);
   };
 
-  const commonClassNames = `text-sm text-gray-700 break-words leading-relaxed prose overflow-wrap break-word`;
+  const commonClassNames = `text-sm break-words leading-relaxed  overflow-wrap break-word
+    prose-p:line-height-6 prose-p:pb-0 prose-p:mb-0  prose-p:text-stone-900 prose-p:text-[14px]
+    prose-h1:text-black prose-h1:mb-2 prose-h1:mt-2 prose-h1:leading-6 prose-h1:text-[20px]
+    prose-h2:text-black prose-h2:mb-2 prose-h2:mt-2 prose-h2:leading-6 prose-h2:text-[18px]
+    prose-h3:text-black prose-h3:mb-2 prose-h3:mt-2 prose-h3:leading-6 prose-h3:text-[18px]
+    prose-h4:text-black prose-h4:mb-2 prose-h4:mt-2 prose-h4:leading-6 prose-h4:text-[16px]
+    prose-h5:text-black prose-h5:mb-2 prose-h5:mt-2 prose-h5:leading-6 prose-h5:text-[16px]
+    prose-h6:text-black prose-h6:mb-2 prose-h6:mt-2 prose-h6:leading-6 prose-h6:text-[16px]
+    prose-ul:text-stone-900 prose-ul:mb-0 prose-ul:leading-6
+    prose-ol:text-stone-900 prose-ol:mb-0 prose-ol:leading-6
+    prose-li:text-stone-900 prose-li:mb-0 prose-li:leading-6
+    prose-hr:hidden prose-hr:border-none prose-hr:m-0
+    prose-code:text-black
+    prose-pre:before:content-none prose-pre:after:content-none prose-pre:text-black prose-pre:rounded-md prose-pre:whitespace-pre-wrap prose-pre:bg-gray-100
+    prose-code:bg-gray-200 prose-code:text-black prose-code:p-1 prose-code:rounded-md prose-code:whitespace-pre-wrap prose-code:my-4 prose-code:mx-2
+    [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:w-full [&_pre]:block [&_pre]:whitespace-pre-wrap [&_pre]:break-words
+    [&_pre_code]:bg-gray-100 [&_pre_code]:w-full [&_pre_code]:p-0 [&_pre_code]:rounded-none [&_pre_code]:my-2 [&_pre_code]:mx-0 [&_pre_code]:block [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words
+    prose-blockquote:font-medium prose-blockquote:italic prose-blockquote:text-[var(--tw-prose-quotes)] prose-blockquote:border-l-[0.25rem] prose-blockquote:border-l-[var(--tw-prose-quote-borders)] prose-blockquote:mt-6 prose-blockquote:mb-6 prose-blockquote:pl-4
+    prose-table:mt-4 prose-table:mb-4 prose-table:w-full prose-table:overflow-hidden prose-table:border-collapse prose-table:border prose-table:border-gray-300
+    prose-th:py-2 prose-th:px-4 prose-th:border prose-th:border-gray-300 prose-th:bg-gray-100 prose-th:text-left
+    prose-td:py-2 prose-td:px-4 prose-td:border prose-td:border-gray-300
+  `;
 
   const processLatex = (content) => {
     content = content.replace(/\\\[([\s\S]*?)\\\]/g, (match, tex) => {
@@ -77,7 +99,6 @@ const MessageContent = ({
   useEffect(() => {
     if (content === "" && reason_content === "") {
       const intervalId = setInterval(() => {
-        console.log("计时器计时器");
         setTime((prevTime) => Math.floor((Date.now() - timestamp) / 1000));
       }, 1000);
 
@@ -98,7 +119,7 @@ const MessageContent = ({
           <div>
             <button
               onClick={toggleExpand}
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-2 transition-colors duration-200"
+              className="flex items-center gap-2 text-gray-500 hover:text-stone-700 mb-2 transition-colors duration-200"
             >
               <ChevronRight
                 className={`w-4 h-4 transition-transform duration-200 
@@ -109,8 +130,10 @@ const MessageContent = ({
 
             {isContentExpanded && (
               <div
-                className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500
-                border border-gray-100 transition-all duration-200"
+                className="p-3 bg-gray-50 rounded-lg text-sm text-stone-800
+                border border-gray-100 transition-all duration-200 prose-p:text-[14px] prose-p:leading-6
+                [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words
+                "
               >
                 <div dangerouslySetInnerHTML={renderContent(reason_content)} />
               </div>
@@ -122,24 +145,15 @@ const MessageContent = ({
           <div className={commonClassNames}>
             {content.map((item, idx) => (
               <div key={idx}>
-                {item.type === "text" && (
-                  <div dangerouslySetInnerHTML={renderContent(item.text)} />
-                )}
+                {item.type === "text" && <div dangerouslySetInnerHTML={renderContent(item.text)} />}
                 {item.type === "image_url" && (
-                  <img
-                    src={item.image_url.url}
-                    alt="uploaded"
-                    className="max-w-full h-auto"
-                  />
+                  <img src={item.image_url.url} alt="uploaded" className="max-w-full h-auto" />
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <div
-            className={commonClassNames}
-            dangerouslySetInnerHTML={renderContent(content)}
-          />
+          <div className={commonClassNames} dangerouslySetInnerHTML={renderContent(content)} />
         )}
       </div>
     </>
@@ -158,7 +172,7 @@ const RelatedQuestions = ({ questions, isLoading, onQuestionClick }) => {
         hover:shadow-sm transform hover:-translate-y-0.5
         cursor-pointer transition-all duration-200"
     >
-      <span>{`${index + 1}. ${question}`}</span>
+      <span>{`${question}`}</span>
     </div>
   );
 
@@ -299,8 +313,8 @@ export const ChatMessageList = ({
             w-full"
           >
             <Globe className="w-4 h-4 text-indigo-500 shrink-0" />
-            <span className="bg-gradient-to-r from-gray-700 to-gray-600 bg-clip-text text-transparent truncate">
-              当前页面：{truncateTitle(pageTitle)}
+            <span className="bg-gradient-to-r from-gray-700 to-gray-600 bg-clip-text truncate text-black">
+              当前页面：{pageTitle}
             </span>
           </div>
         </div>
@@ -313,17 +327,15 @@ export const ChatMessageList = ({
       <div className="flex-1 h-full flex items-center justify-center">
         <div className="relative w-full h-full flex flex-col items-center justify-center">
           <div className="p-8 text-center">
-            <div className="hover:scale-105 transition-all duration-300">
+            <div className="hover:scale-105 transition-all duration-300 transform -translate-y-8">
               <div className="flex flex-col items-center justify-center gap-6">
                 <div className="w-24 h-24 bg-white shadow-lg rounded-xl flex items-center justify-center">
-                  <Bot className="w-14 h-14 text-indigo-600" />
+                  <FileSearch className="w-14 h-14 text-indigo-600" />
                 </div>
                 <div className="space-y-3">
-                  <div className="font-medium text-gray-700 text-lg">
-                    Web助手
-                  </div>
+                  <div className="font-medium text-gray-700 text-lg">Web助手</div>
                   <div className="text-sm text-gray-500 max-w-xs">
-                    对页面内容感兴趣？直接询问我吧 ！
+                    问我关于当前页面内容的任何问题
                   </div>
                 </div>
               </div>
@@ -361,31 +373,25 @@ export const ChatMessageList = ({
                 style={
                   isLastMessage && isAssistant && messages.length > 2
                     ? {
-                        height: `calc(70vh - ${prevMessageHeight}px)`,
+                        height: `calc(100vh - ${prevMessageHeight}px - 295px)`,
                       }
                     : {}
                 }
               >
-                <div
-                  className={`flex ${
-                    isAssistant ? "justify-start" : "justify-end"
-                  }`}
-                >
+                <div className={`flex ${isAssistant ? "justify-start" : "justify-end"}`}>
                   <div
                     className={`relative rounded-xl shadow-sm
                     ${
                       isAssistant
                         ? "w-full bg-white border border-gray-100"
-                        : "max-w-[80%] bg-blue-100 inline-block"
+                        : "max-w-[80%] inline-block bg-blue-100 rounded-lg p-2"
                     }`}
                   >
                     {isAssistant && (
-                      <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white p-3">
+                      <div className="border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white p-3 rounded-t-xl">
                         <div className="flex items-center gap-2">
                           <Bot className="w-5 h-5 text-indigo-600" />
-                          <span className="font-medium text-indigo-600">
-                            {msg.model}
-                          </span>
+                          <span className="font-medium text-indigo-600">{msg.model}</span>
                         </div>
                       </div>
                     )}
@@ -401,9 +407,7 @@ export const ChatMessageList = ({
                         relatedQuestions={msg?.relatedQuestions || []}
                         isAssistant={isAssistant}
                         isRelatedQuestions={msg?.isRelatedQuestions || false}
-                        isShowRelatedQuestions={
-                          msg?.isShowRelatedQuestions || false
-                        }
+                        isShowRelatedQuestions={msg?.isShowRelatedQuestions || false}
                       />
 
                       {isAssistant && (
@@ -426,18 +430,14 @@ export const ChatMessageList = ({
                     </div>
                   </div>
                 </div>
-                {isLastMessage &&
-                  isAssistant &&
-                  msg?.isShowRelatedQuestions && (
-                    <AnswerQuestion
-                      relatedQuestions={msg?.relatedQuestions || []}
-                      isRelatedQuestions={msg?.isRelatedQuestions || false}
-                      isShowRelatedQuestions={
-                        msg?.isShowRelatedQuestions || false
-                      }
-                      onQuestionClick={onQuestionClick}
-                    />
-                  )}
+                {isLastMessage && isAssistant && msg?.isShowRelatedQuestions && (
+                  <AnswerQuestion
+                    relatedQuestions={msg?.relatedQuestions || []}
+                    isRelatedQuestions={msg?.isRelatedQuestions || false}
+                    isShowRelatedQuestions={msg?.isShowRelatedQuestions || false}
+                    onQuestionClick={onQuestionClick}
+                  />
+                )}
               </div>
             );
           })}

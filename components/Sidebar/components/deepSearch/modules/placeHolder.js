@@ -1,4 +1,4 @@
-import { Sparkle, ArrowRight } from "lucide-react";
+import { Sparkle, ArrowRight, ScanEye } from "lucide-react";
 import { getCurrentSearchSource } from "../../../../../public/storage";
 import { useState, useEffect } from "react";
 
@@ -33,14 +33,12 @@ const PlaceHolder = ({ setActivatePage }) => {
             <Sparkle className="w-14 h-14 text-indigo-600" />
           </div>
           <div className="space-y-3">
-            <div className="font-medium text-gray-700 text-lg">
-              深度思考搜索
+            <div className="font-medium text-gray-700 text-lg">AI 洞察分析</div>
+            <div className="text-sm text-gray-500 max-w-xs">
+              请详细、完整地描述你想查资料分析的问题
             </div>
             <div className="text-sm text-gray-500 max-w-xs">
-              Super2Brain会自动操作您的浏览器，进行深度思考
-            </div>
-            <div className="text-sm text-gray-500 max-w-xs">
-              对于一般问题建议使用gpt-4o-mini模型
+              Super2Brain 会自动操作您的浏览器进行 AI 洞察分析
             </div>
           </div>
         </div>

@@ -7,10 +7,7 @@ const loadingButtonContent = `
     if (window._sidebarInjected) return;
     window._sidebarInjected = true;
 
-    if (
-      typeof Readability === "undefined" ||
-      typeof TurndownService === "undefined"
-    ) {
+    if (typeof Readability === "undefined" || typeof TurndownService === "undefined") {
       console.error("必要的依赖未加载");
       return;
     }
@@ -62,10 +59,7 @@ const loadingButtonContent = `
       function onMouseMove(e) {
         let newTop = e.clientY - startY;
 
-        newTop = Math.min(
-          Math.max(0, newTop),
-          window.innerHeight - button.offsetHeight
-        );
+        newTop = Math.min(Math.max(0, newTop), window.innerHeight - button.offsetHeight);
 
         button.style.top = newTop + "px";
       }
@@ -107,90 +101,12 @@ const loadingButtonContent = `
     document.body.appendChild(alertContainer);
   };
 
-  if (
-    document.readyState === "complete" ||
-    document.readyState === "interactive"
-  ) {
+  if (document.readyState === "complete" || document.readyState === "interactive") {
     initializeExtension();
   } else {
     document.addEventListener("DOMContentLoaded", initializeExtension);
   }
 })();
-
-async function extractMarkdown(baseUrl) {
-  try {
-    if (
-      typeof Readability === "undefined" ||
-      typeof TurndownService === "undefined"
-    ) {
-      throw new Error("必要的依赖未加载");
-    }
-
-    const turndownService = new TurndownService();
-    const rules = [
-      {
-        name: "truncate-svg",
-        filter: "svg",
-        replacement: () => "",
-      },
-      {
-        name: "header",
-        filter: ["h1", "h2", "h3"],
-        replacement: (content, node) => {
-          const h1s = document.getElementsByTagName("h1");
-          const h2s = document.getElementsByTagName("h2");
-          const h3s = document.getElementsByTagName("h3");
-
-          if (h1s.length > 0 && node.tagName === "H1") {
-            return `# ${content}\n\n`;
-          } else if (
-            h1s.length === 0 &&
-            h2s.length > 0 &&
-            node.tagName === "H2"
-          ) {
-            return `# ${content}\n\n`;
-          } else if (
-            h1s.length === 0 &&
-            h2s.length === 0 &&
-            node.tagName === "H3"
-          ) {
-            return `# ${content}\n\n`;
-          }
-          return `${content}\n\n`;
-        },
-      },
-      {
-        name: "absolute-image-paths",
-        filter: "img",
-        replacement: (content, node) => {
-          return ``;
-        },
-      },
-    ];
-
-    rules.forEach((rule) => turndownService.addRule(rule.name, rule));
-
-    const reader = new Readability(document.cloneNode(true), {
-      charThreshold: 0,
-      keepClasses: true,
-      nbTopCandidates: 10,
-    });
-    const article = reader.parse();
-    if (!article || !article.content) {
-      throw new Error("无法解析页面内容");
-    }
-
-    const markdown = turndownService.turndown(article.content);
-    if (!markdown.trim()) {
-      throw new Error("提取的内容为空");
-    }
-
-    return markdown;
-  } catch (error) {
-    console.error("Markdown 提取失败:", error);
-    throw new Error(`提取失败: ${error.message}`);
-  }
-}
 
 function getUserInput() {
   return new Promise((resolve, reject) => {

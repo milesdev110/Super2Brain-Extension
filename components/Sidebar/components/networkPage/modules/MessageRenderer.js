@@ -1,5 +1,4 @@
 import {
-  Bot,
   Loader2,
   CheckCircle2,
   Search,
@@ -9,6 +8,7 @@ import {
   Copy,
   RefreshCw,
   Check,
+  Bot,
 } from "lucide-react";
 import { marked } from "marked";
 import { ResponseLoading } from "./responseLoading";
@@ -17,6 +17,29 @@ import { RelatedQuestions } from "./RelatedQuestions";
 import React, { useRef, useEffect, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+
+const commonClassNames = `text-sm break-words leading-relaxed  overflow-wrap break-word
+    prose-p:line-height-6 prose-p:pb-0 prose-p:mb-0  prose-p:text-stone-900 prose-p:text-[14px]
+    prose-h1:text-black prose-h1:mb-2 prose-h1:mt-2 prose-h1:leading-6 prose-h1:text-[20px]
+    prose-h2:text-black prose-h2:mb-2 prose-h2:mt-2 prose-h2:leading-6 prose-h2:text-[18px]
+    prose-h3:text-black prose-h3:mb-2 prose-h3:mt-2 prose-h3:leading-6 prose-h3:text-[18px]
+    prose-h4:text-black prose-h4:mb-2 prose-h4:mt-2 prose-h4:leading-6 prose-h4:text-[16px]
+    prose-h5:text-black prose-h5:mb-2 prose-h5:mt-2 prose-h5:leading-6 prose-h5:text-[16px]
+    prose-h6:text-black prose-h6:mb-2 prose-h6:mt-2 prose-h6:leading-6 prose-h6:text-[16px]
+    prose-ul:text-stone-900 prose-ul:mb-0 prose-ul:leading-6
+    prose-ol:text-stone-900 prose-ol:mb-0 prose-ol:leading-6
+    prose-li:text-stone-900 prose-li:mb-0 prose-li:leading-6
+    prose-hr:hidden prose-hr:border-none prose-hr:m-0
+    prose-code:text-black
+    prose-pre:before:content-none prose-pre:after:content-none prose-pre:text-black prose-pre:rounded-md prose-pre:whitespace-pre-wrap prose-pre:bg-gray-100
+    prose-code:bg-gray-200 prose-code:text-black prose-code:p-1 prose-code:rounded-md prose-code:whitespace-pre-wrap prose-code:my-4 prose-code:mx-2
+    [&_pre]:bg-gray-100 [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:w-full [&_pre]:block [&_pre]:whitespace-pre-wrap [&_pre]:break-words
+    [&_pre_code]:bg-gray-100 [&_pre_code]:w-full [&_pre_code]:p-0 [&_pre_code]:rounded-none [&_pre_code]:my-2 [&_pre_code]:mx-0 [&_pre_code]:block [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words
+    prose-blockquote:font-medium prose-blockquote:italic prose-blockquote:text-[var(--tw-prose-quotes)] prose-blockquote:border-l-[0.25rem] prose-blockquote:border-l-[var(--tw-prose-quote-borders)] prose-blockquote:mt-6 prose-blockquote:mb-6 prose-blockquote:pl-4
+    prose-table:mt-4 prose-table:mb-4 prose-table:w-full prose-table:overflow-hidden prose-table:border-collapse prose-table:border prose-table:border-gray-300
+    prose-th:py-2 prose-th:px-4 prose-th:border prose-th:border-gray-300 prose-th:bg-gray-100 prose-th:text-left
+    prose-td:py-2 prose-td:px-4 prose-td:border prose-td:border-gray-300
+    `;
 
 export const MessageRenderer = ({
   messages,
@@ -27,9 +50,12 @@ export const MessageRenderer = ({
   handleNetworkSubmit,
   isLoading,
   setActivatePage,
+  searchEnabled,
+  startTimer,
+  stopTimer,
+  setNetworkElapsedTime,
 }) => {
   const containerRef = useRef(null);
-
   const lastMessageRef = useRef(null);
   const [lastMessageHeight, setLastMessageHeight] = useState(0);
   useEffect(() => {
@@ -83,9 +109,12 @@ export const MessageRenderer = ({
     setMessage((prevMessages) => prevMessages.slice(0, -2));
 
     try {
+      setNetworkElapsedTime(0);
+      startTimer();
       await handleNetworkSubmit(lastUserMessage);
     } catch (error) {
       console.error("重新生成消息时出错:", error);
+      stopTimer();
     }
   };
 
@@ -127,9 +156,9 @@ export const MessageRenderer = ({
   if (!messages || messages.length === 0) {
     return (
       <PlaceHolder
-        Icon={Search}
-        title="AI 联网助手"
-        description="操作你的浏览器，获取更多信息，并进行分析"
+        Icon={Bot}
+        title={"S2B 问答助手"}
+        description={"S2B 问答助手，集成多种大模型回答您的问题"}
         setActivatePage={setActivatePage}
       />
     );
@@ -158,7 +187,7 @@ export const MessageRenderer = ({
 
     const messageStyle = isLastMessage
       ? {
-          minHeight: `calc(68vh - ${lastMessageHeight}px)`,
+          minHeight: `calc(100% - ${lastMessageHeight}px - 70px)`,
           overflowY: "auto",
         }
       : {};
@@ -248,8 +277,10 @@ export const MessageRenderer = ({
               <div key={idx} className="flex items-center gap-2 text-sm">
                 {url.status === 2 ? (
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
-                ) : (
+                ) : url.status === 1 ? (
                   <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                ) : (
+                  <XCircle className="w-4 h-4 text-red-500" />
                 )}
                 <a
                   href={url.url}
@@ -289,7 +320,7 @@ export const MessageRenderer = ({
                   border border-gray-100 transition-all duration-200"
               >
                 <div
-                  className="text-sm text-gray-700 break-words leading-relaxed prose"
+                  className="text-sm text-stone-900 break-words prose prose-p:leading-6"
                   dangerouslySetInnerHTML={{
                     __html: marked(processLatex(msg.reasoning_content || ""), {
                       gfm: true,
@@ -322,9 +353,7 @@ export const MessageRenderer = ({
 
             {msg.content && (
               <div
-                className={`mx-4 mt-4 mb-2 text-sm text-gray-700 break-words leading-relaxed prose" ${
-                  msg.isStreaming ? "animate-pulse" : ""
-                }`}
+                className={`mx-4 mt-4 mb-2 ${commonClassNames}`}
                 dangerouslySetInnerHTML={{
                   __html: marked(processLatex(msg.content), {
                     breaks: true,
@@ -371,7 +400,7 @@ export const MessageRenderer = ({
   };
 
   return (
-    <div ref={containerRef} className="h-full overflow-y-auto space-y-4 scrollbar-hidden">
+    <div ref={containerRef} className="h-full space-y-4 overflow-y-auto scrollbar-hidden">
       {messages.map((msg, index) =>
         msg.role === "user" ? renderUserMessage(msg, index) : renderAssistantMessage(msg, index)
       )}

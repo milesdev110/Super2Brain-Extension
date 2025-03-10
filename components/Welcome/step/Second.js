@@ -12,8 +12,7 @@ const RefreshModal = ({ isOpen, onClose, onRefresh }) => {
       >
         <h3 className="text-xl font-semibold mb-4">需要刷新标签页</h3>
         <p className="text-gray-600 mb-6">
-          由于浏览器限制，必须刷新当前已打开的标签页才能使用 Super2Brain。
-          新打开的标签页无需刷新。
+          由于浏览器限制，必须刷新当前已打开的标签页才能使用 Super2Brain。 新打开的标签页无需刷新。
         </p>
         <p className="text-gray-600 mb-6">点击下面的按钮后会关闭当前网页</p>
         <div className="flex justify-end gap-4">
@@ -49,12 +48,13 @@ export default function Second({ onNext }) {
       (response) => {
         if (response.success) {
           setIsRefreshModalOpen(false);
+          window.close();
         } else {
           console.error("刷新标签页失败:", response.error);
+          window.close();
         }
       }
     );
-    window.close();
   };
 
   return (

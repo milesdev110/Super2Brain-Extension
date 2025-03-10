@@ -42,23 +42,13 @@ export default function WelcomeCom() {
         <div className="w-full max-w-xl">
           <div className="mb-16">
             <h1 className="text-2xl font-bold mb-12 text-left">👋 欢迎使用</h1>
-            <StepBar
-              currentStep={currentStep}
-              totalSteps={2}
-              onChange={handleStepChange}
-            />
+            <StepBar currentStep={currentStep} totalSteps={2} onChange={handleStepChange} />
           </div>
           {renderStepComponent()}
         </div>
       </div>
       <div className="w-[60%] bg-[#dcecf7] p-8">
-        {currentStep === 3 ? (
-          <SecondRight />
-        ) : currentStep === 2 ? (
-          <FirstRight />
-        ) : (
-          <FirstRight />
-        )}
+        {currentStep === 3 ? <SecondRight /> : currentStep === 2 ? <FirstRight /> : <FirstRight />}
       </div>
     </div>
   );

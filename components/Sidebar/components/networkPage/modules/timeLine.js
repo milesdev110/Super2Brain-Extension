@@ -1,4 +1,4 @@
-import { Loader2, Clock, Check, Download } from "lucide-react";
+import { Check, Clock, Download, Loader2 } from "lucide-react";
 
 const classNames = (...classes) => classes.filter(Boolean).join(" ");
 
@@ -54,8 +54,8 @@ const TimeLine = ({ contentUrlList }) => {
     </div>
   );
 
-  const isAllStatusZero = contentUrlList.every(event => event.status === 0);
-  
+  const isAllStatusZero = contentUrlList.every((event) => event.status === 0);
+
   if (isAllStatusZero) {
     return null;
   }
@@ -89,11 +89,7 @@ const TimeLine = ({ contentUrlList }) => {
                     </div>
                     <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1">
                       <div className="min-w-0 flex-1">
-                        <p
-                          className={`text-xs truncate ${getTextColorClass(
-                            event.status
-                          )}`}
-                        >
+                        <p className={`text-xs truncate ${getTextColorClass(event.status)}`}>
                           <a
                             href={event.url}
                             target="_blank"

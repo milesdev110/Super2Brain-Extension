@@ -31,4 +31,4 @@ const getTabIdByUrl = async (url) => {
   }
 };
 
-export { toggleBreathingLight, getTabIdByUrl };
+export { getTabIdByUrl, toggleBreathingLight };

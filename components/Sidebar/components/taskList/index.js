@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  getTaskList,
-  updateTaskList,
-  getUserInput,
-} from "../../../../public/storage";
+import { getTaskList, getUserInput, updateTaskList } from "../../../../public/storage";
 import { config } from "../../../config/index";
 import { PlaceHolder } from "./modules";
 const GetTaskStatus = `${config.baseUrl}mon/tasks/{task_id}`;
@@ -41,14 +37,9 @@ const useTaskPolling = (token) => {
         );
 
         const updatedTasks = currentTasks.map((task) => {
-          if (task.status === "SUCCESS" || task.status === "FAILURE")
-            return task;
-          const updatedTask = results.find(
-            (r) => r.data.task_id === task.taskId
-          );
-          return updatedTask
-            ? { ...task, status: updatedTask.data.status }
-            : task;
+          if (task.status === "SUCCESS" || task.status === "FAILURE") return task;
+          const updatedTask = results.find((r) => r.data.task_id === task.taskId);
+          return updatedTask ? { ...task, status: updatedTask.data.status } : task;
         });
 
         setTaskList(updatedTasks);
@@ -110,9 +101,7 @@ const TaskList = () => {
 
   return (
     <div className="w-full h-[calc(100vh-8px)] flex flex-col bg-white rounded-lg shadow-sm">
-      <h3 className="text-xl font-semibold p-4 pb-2 border-b border-gray-100">
-        任务列表
-      </h3>
+      <h3 className="text-xl font-semibold p-4 pb-2 border-b border-gray-100">任务列表</h3>
       <div className="flex-1 overflow-y-auto p-4">
         {taskList.length > 0 ? (
           <div className="w-full flex flex-col gap-4">
@@ -127,9 +116,7 @@ const TaskList = () => {
                       <div className="truncate text-base font-medium text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
                         {task.title}
                       </div>
-                      <div className="flex-shrink-0">
-                        {renderStatus(task.status)}
-                      </div>
+                      <div className="flex-shrink-0">{renderStatus(task.status)}</div>
                     </div>
                     <div className="text-sm text-gray-500">
                       {new Date(task.createdAt).toLocaleString("zh-CN", {

@@ -1,6 +1,6 @@
 import { getUserInput } from "../../../public/storage";
-import { callOpenaiWithRetry } from "./callAi";
 import { config } from "../../config";
+import { callOpenaiWithRetry } from "./callAi";
 
 export const check = async (query, selectedModel = "gpt-4o-mini", baseUrl = config.baseUrl) => {
   const token = await getUserInput();

@@ -1,8 +1,8 @@
-import { ScanEye, Sparkle } from "lucide-react";
-import { MarkdownRenderer } from "./modules/parseMrakdown";
-import { Question } from "./modules/question";
-import { NoLogin } from "./modules/noLogin";
+import { Sparkle } from "lucide-react";
 import { Loading } from "../common/loading";
+import { NoLogin } from "./modules/noLogin";
+import { MarkdownRenderer } from "./modules/parseMarkdown";
+import { Question } from "./modules/question";
 
 const WelcomePage = ({
   currentUrlTab,

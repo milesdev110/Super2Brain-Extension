@@ -1,5 +1,5 @@
-import { fetchStreamResponse, handleStreamResponse } from "./api";
 import { getSearchSourceStorage } from "../../../../../public/storage";
+import { fetchStreamResponse, handleStreamResponse } from "./api";
 let flag = false;
 const invokeOpenAI = async (messages, model = "gpt-4o-mini", baseUrl, provider, userInput) => {
   const response = await fetchStreamResponse(messages, model, baseUrl, provider, userInput);
@@ -39,7 +39,7 @@ const createSearchUrl = async (searchQuery) => {
     searchSource = "https://www.bing.com/search?q=";
   }
 
-  if (searchSource.includes("zhihu.com")) {
+  if (searchSource?.includes("zhihu.com")) {
     searchUrl = `https://cn.bing.com/search?q=site%3A%2F%2Fzhihu.com%20${encodedQuery}&count=50`;
   } else if (searchSource.includes("bing.com")) {
     searchUrl = `${searchSource}${encodedQuery}&count=50&first=1`;

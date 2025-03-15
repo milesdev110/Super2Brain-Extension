@@ -18,10 +18,7 @@ export const handleStreamResponse = async (stream) => {
   }
 };
 
-export const createStreamCompletion = async (
-  openai,
-  { model, messages, temperature = 0.7 }
-) => {
+export const createStreamCompletion = async (openai, { model, messages, temperature = 0.7 }) => {
   try {
     const response = await openai.chat.completions.create({
       model,

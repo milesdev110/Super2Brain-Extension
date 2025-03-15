@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import { config } from "../../config/index.js";
+import { useState } from "react";
 import {
-  getDeepSeekApiKey,
-  getOpenaiApiKey,
   getClaudeApiKey,
-  getOllamaConfig,
   getCustomConfig,
+  getDeepSeekApiKey,
   getLmstudioConfig,
-  getUserInput,
+  getOllamaConfig,
+  getOpenaiApiKey,
   getOpenAiUrl,
+  getUserInput,
 } from "../../../public/storage";
+import { config } from "../../config/index.js";
 
 const useSeetingHandler = () => {
   const [settings, setSettings] = useState({
@@ -23,6 +23,10 @@ const useSeetingHandler = () => {
     },
     openai: {
       baseUrl: "https://api.openai.com",
+      apiKey: "",
+    },
+    claude: {
+      baseUrl: "https://api.anthropic.com",
       apiKey: "",
     },
     ollama: {
@@ -51,6 +55,7 @@ const useSeetingHandler = () => {
       const ollamaConfig = await getOllamaConfig();
       const customConfig = await getCustomConfig();
       const openaiUrl = await getOpenAiUrl();
+      console.log(openaiUrl);
       setSettings((prev) => ({
         super2brain: {
           baseUrl: `${config.baseUrl}/v1` || "",

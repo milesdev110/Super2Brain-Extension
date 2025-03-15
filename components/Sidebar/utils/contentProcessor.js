@@ -4,9 +4,7 @@ const processImageByModel = (item, model) => {
   const imageUrl = item.image_url.url;
   const isClaudeModel = /claude/i.test(model);
 
-  return isClaudeModel
-    ? `<image>${imageUrl}</image>`
-    : `![image](${imageUrl})`;
+  return isClaudeModel ? `<image>${imageUrl}</image>` : `![image](${imageUrl})`;
 };
 
 export const processContent = (content, model, imageData = null) => {
@@ -31,4 +29,4 @@ export const processContent = (content, model, imageData = null) => {
     .map((item) => (typeHandlers[item.type] || typeHandlers.default)(item))
     .filter(Boolean)
     .join("\n");
-}; 
+};

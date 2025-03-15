@@ -1,8 +1,8 @@
-import StepBar from "./modules/StepBar";
 import React, { useState } from "react";
+import StepBar from "./modules/StepBar";
 import First from "./step/First";
-import Second from "./step/Second";
 import FirstRight from "./step/FirstRight";
+import Second from "./step/Second";
 import SecondRight from "./step/SecondRight";
 
 export default function WelcomeCom() {

@@ -1,5 +1,5 @@
-import { config } from "../../config/index";
 import { getUserInput } from "../../../public/storage.js";
+import { config } from "../../config/index";
 
 const makeQuestionMore = async (query) => {
   const token = await getUserInput();

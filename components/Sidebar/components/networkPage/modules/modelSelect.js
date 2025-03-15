@@ -1,12 +1,12 @@
 import { Bot, ChevronDown } from "lucide-react";
 
-export const ModelSelector = ({ 
-  isOpen, 
-  setIsOpen, 
-  model, 
-  selectedModel, 
+export const ModelSelector = ({
+  isOpen,
+  setIsOpen,
+  model,
+  selectedModel,
   handleModelSelect,
-  super2brainModel 
+  super2brainModel,
 }) => {
   return (
     <>
@@ -20,9 +20,7 @@ export const ModelSelector = ({
         shadow-sm hover:shadow-md"
       >
         <Bot className="w-4 h-4 text-white" />
-        <span className="text-sm text-white ml-2 font-medium">
-          {model}
-        </span>
+        <span className="text-sm text-white ml-2 font-medium">{model}</span>
         <ChevronDown className="w-4 h-4 ml-auto text-white/80" />
       </div>
 
@@ -36,15 +34,11 @@ export const ModelSelector = ({
                 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-transparent
                 flex items-center justify-between group
                 ${
-                  selectedModel === model.id
-                    ? "text-indigo-600 bg-indigo-50/50"
-                    : "text-gray-600"
+                  selectedModel === model.id ? "text-indigo-600 bg-indigo-50/50" : "text-gray-600"
                 }`}
                 onClick={() => handleModelSelect(model.id)}
               >
-                <span className="group-hover:text-indigo-600">
-                  {model.id}
-                </span>
+                <span className="group-hover:text-indigo-600">{model.id}</span>
                 {selectedModel === model.id && (
                   <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
                 )}
@@ -55,4 +49,4 @@ export const ModelSelector = ({
       )}
     </>
   );
-}; 
+};

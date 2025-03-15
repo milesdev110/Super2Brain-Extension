@@ -1,8 +1,8 @@
+import { check, getSimpleResponse } from "./check";
+import { getDeepAnalysis, getDeepAnswer, getDeepQuestion } from "./deepInvolve";
+import { analyzeQuestions, getAnswer, processDocument, relieaQuestion } from "./involve";
 import { searchWebContent } from "./search";
 import { createContext } from "./utils";
-import { relieaQuestion, analyzeQuestions, processDocument, getAnswer } from "./involve";
-import { getDeepAnalysis, getDeepQuestion, getDeepAnswer } from "./deepInvolve";
-import { check, getSimpleResponse } from "./check";
 const getUrl = async (questions, updateStatus) => {
   const promise = questions.map(async (question) => {
     const results = await searchWebContent(question, updateStatus);

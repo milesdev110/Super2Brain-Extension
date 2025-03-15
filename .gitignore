@@ -5,3 +5,9 @@
 /out
 out.pem
 out.zip
+
+.history
+.history/*
+
+history
+history/*

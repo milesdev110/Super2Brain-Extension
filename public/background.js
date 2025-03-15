@@ -1,5 +1,5 @@
+import { getLastUpdateCheck, setLastUpdateCheck, setVersion } from "./storage.js";
 import { captureVisibleTab } from "./utils.js";
-import { setLastUpdateCheck, getLastUpdateCheck, setVersion } from "./storage.js";
 
 const breathingLightStyle = `
 @keyframes breathe {

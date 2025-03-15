@@ -1,21 +1,18 @@
-import { config } from "../../config/index"
+import { config } from "../../config/index";
 
 export const baseUrl = config.baseUrl;
 export const search = async (userInput, query) => {
   try {
-    const response = await fetch(
-      `${baseUrl}/common/notes/search/similar?limit=10`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${userInput}`,
-        },
-        body: JSON.stringify({
-          query_text: query,
-        }),
-      }
-    );
+    const response = await fetch(`${baseUrl}/common/notes/search/similar?limit=10`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${userInput}`,
+      },
+      body: JSON.stringify({
+        query_text: query,
+      }),
+    });
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -92,8 +89,7 @@ export const searchWeb = async (query) => {
       throw new Error(result.msg || "请求失败");
     }
 
-    const searchResults =
-      result.data?.choices?.[0]?.message?.tool_calls?.[1]?.search_result || [];
+    const searchResults = result.data?.choices?.[0]?.message?.tool_calls?.[1]?.search_result || [];
 
     // 格式化搜索结果
     const formattedResults = searchResults
@@ -103,9 +99,7 @@ export const searchWeb = async (query) => {
         const content = item.content ? `内容：${item.content}` : "";
         const link = item.link ? `链接：${item.link}` : "";
 
-        return `[搜索结果 ${
-          index + 1
-        }]\n${title}\n${source}\n${content}\n${link}\n`;
+        return `[搜索结果 ${index + 1}]\n${title}\n${source}\n${content}\n${link}\n`;
       })
       .join("\n");
 

@@ -1,11 +1,8 @@
-import { search, rerankNotes } from "./service";
 import { OpenAI } from "openai";
-import { getSystemPrompt } from "./getSystemPrompt";
 import { config } from "../../config/index";
-import {
-  handleStreamResponse,
-  createStreamRequest,
-} from "../components/networkPage/utils/streamUtils";
+import { handleStreamResponse } from "../components/networkPage/utils/streamUtils";
+import { getSystemPrompt } from "./getSystemPrompt";
+import { search } from "./service";
 
 const determineSearchNeed = async (userInput, query, model, searchEnabled) => {
   return {
@@ -15,20 +12,19 @@ const determineSearchNeed = async (userInput, query, model, searchEnabled) => {
   };
 };
 
-const generateSimilarQuestions =
-  (openai) => async (query, response, onProgress) => {
-    try {
-      const stream = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content:
-              "你是一个帮助生成相关问题的AI助手。请基于用户的上一个问题和回答，生成3个后续问题。",
-          },
-          {
-            role: "user",
-            content: `基于以下问题和回答，生成3个用户可能会继续追问的后续问题：
+const generateSimilarQuestions = (openai) => async (query, response, onProgress) => {
+  try {
+    const stream = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content:
+            "你是一个帮助生成相关问题的AI助手。请基于用户的上一个问题和回答，生成3个后续问题。",
+        },
+        {
+          role: "user",
+          content: `基于以下问题和回答，生成3个用户可能会继续追问的后续问题：
       
       原问题：${query}
       回答：${response}
@@ -39,20 +35,20 @@ const generateSimilarQuestions =
       3. 探索相关但不同的方面
 
       请直接返回3个问题，每个问题占一行。`,
-          },
-        ],
-        stream: true,
-      });
+        },
+      ],
+      stream: true,
+    });
 
-      const content = await handleStreamResponse(stream);
-      const questions = content.split("\n").filter((q) => q.trim());
-      onProgress?.({ stage: 5, questions });
-      return questions;
-    } catch (error) {
-      console.error("生成相似问题时发生错误:", error);
-      return [];
-    }
-  };
+    const content = await handleStreamResponse(stream);
+    const questions = content.split("\n").filter((q) => q.trim());
+    onProgress?.({ stage: 5, questions });
+    return questions;
+  } catch (error) {
+    console.error("生成相似问题时发生错误:", error);
+    return [];
+  }
+};
 
 const formatVectorResults = (results) => {
   return results
@@ -163,12 +159,7 @@ export const getResponse = async (
         { role: "user", content: query },
       ];
 
-      const streamContent = await processStreamResponse(
-        openai,
-        messages,
-        model,
-        onProgress
-      );
+      const streamContent = await processStreamResponse(openai, messages, model, onProgress);
 
       const questionGenerator = generateSimilarQuestions(openai);
       await questionGenerator(query, streamContent, onProgress);
@@ -187,8 +178,7 @@ export const getResponse = async (
   if (initialResults.length === 0) {
     onProgress?.({
       stage: 3,
-      response:
-        "不好意思，您的知识库中暂时没有相关内容，请您换一个关键词试试。",
+      response: "不好意思，您的知识库中暂时没有相关内容，请您换一个关键词试试。",
     });
     return;
   }
@@ -209,12 +199,7 @@ export const getResponse = async (
   });
 
   try {
-    const streamContent = await processStreamResponse(
-      openai,
-      messages,
-      model,
-      onProgress
-    );
+    const streamContent = await processStreamResponse(openai, messages, model, onProgress);
 
     const questionGenerator = generateSimilarQuestions(openai);
     await questionGenerator(query, streamContent, onProgress);

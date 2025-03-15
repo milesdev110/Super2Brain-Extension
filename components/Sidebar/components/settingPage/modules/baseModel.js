@@ -1,10 +1,10 @@
 import { useState } from "react";
 import {
-  setWebPreview as setWebPreviewStorage,
   setPreviewLight as setPreviewLightStorage,
+  setWebPreview as setWebPreviewStorage,
 } from "../../../../../public/storage";
-import { CheckboxOption } from "./baseModel/module/checkOption";
-import { PointsCard } from "./baseModel/module/pointCard";
+import { CheckboxOption } from "./baseModel/modules/checkOption";
+import { PointsCard } from "./baseModel/modules/pointCard";
 
 const notificationOptions = [
   {

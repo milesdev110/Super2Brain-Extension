@@ -1,5 +1,5 @@
+import { useCallback } from "react";
 import { Tooltip } from "react-tooltip";
-import { useCallback, useState } from "react";
 import { ACTIVATE_ITEMS } from "../../contants/activateBar";
 
 const ActivateBar = ({ activatePage, setActivatePage }) => {
@@ -21,9 +21,7 @@ const ActivateBar = ({ activatePage, setActivatePage }) => {
           `}
           data-tooltip-id={`activate-${id}`}
         >
-          <Icon
-            className={`w-6 h-6 ${isActive ? "text-indigo-600" : ""}  hover:text-indigo-600`}
-          />
+          <Icon className={`w-6 h-6 ${isActive ? "text-indigo-600" : ""}  hover:text-indigo-600`} />
           <Tooltip
             id={`activate-${id}`}
             place="left"
@@ -44,12 +42,8 @@ const ActivateBar = ({ activatePage, setActivatePage }) => {
 
   return (
     <div className="fixed right-0 top-0 w-12 h-full flex flex-col justify-between bg-white/10 rounded-lg py-2">
-      <div className="space-y-1">
-        {topItems.map((item) => renderActivateItem(item))}
-      </div>
-      <div className="space-y-1">
-        {bottomItems.map((item) => renderActivateItem(item))}
-      </div>
+      <div className="space-y-1">{topItems.map((item) => renderActivateItem(item))}</div>
+      <div className="space-y-1">{bottomItems.map((item) => renderActivateItem(item))}</div>
     </div>
   );
 };

@@ -9,9 +9,7 @@ const NoLogin = ({ setActivatePage }) => {
             <LogIn className="w-14 h-14 text-indigo-500" />
           </div>
           <div className="space-y-3">
-            <div className="font-medium text-gray-700 text-lg">
-              没有登录，无法进行网页速览
-            </div>
+            <div className="font-medium text-gray-700 text-lg">没有登录，无法进行网页速览</div>
             <button
               onClick={() => setActivatePage(5)}
               className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium 

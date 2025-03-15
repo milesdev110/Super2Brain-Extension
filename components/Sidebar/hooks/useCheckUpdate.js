@@ -19,7 +19,7 @@ const useCheckUpdate = () => {
         action: "checkUpdate",
       });
 
-      setUpdateInfo(prev => ({
+      setUpdateInfo((prev) => ({
         isUpdate: response?.updateAvailable || false,
         currentVersion: response?.currentVersion || "",
         newVersion: response?.version || "",
@@ -28,7 +28,7 @@ const useCheckUpdate = () => {
         choremUpdateUrl: response?.choremUpdateUrl || "",
         edgeUpdateUrl: response?.edgeUpdateUrl || "",
         updateDocs: response?.updateDocs || "",
-        isDismissed: prev.isDismissed
+        isDismissed: prev.isDismissed,
       }));
     } catch (error) {
       console.error("检查更新失败:", error);
@@ -36,9 +36,9 @@ const useCheckUpdate = () => {
   };
 
   const dismissUpdate = () => {
-    setUpdateInfo(prev => ({
+    setUpdateInfo((prev) => ({
       ...prev,
-      isDismissed: true
+      isDismissed: true,
     }));
   };
 

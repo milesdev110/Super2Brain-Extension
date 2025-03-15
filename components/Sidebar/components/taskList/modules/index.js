@@ -10,9 +10,7 @@ const PlaceHolder = () => {
           </div>
           <div className="space-y-3">
             <div className="font-medium text-gray-700 text-lg">暂无任务</div>
-            <div className="text-sm text-gray-500 max-w-xs">
-              新的任务将会显示在这里
-            </div>
+            <div className="text-sm text-gray-500 max-w-xs">新的任务将会显示在这里</div>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { ChatMessageList } from "./modules/ChatMessageList";
+import { ChatMessageList } from "./modules/chatMessageList";
 import { TextareaRef } from "./modules/textarea";
 
 const ActivateTabChatPanel = ({
@@ -25,26 +25,31 @@ const ActivateTabChatPanel = ({
   currentUrlLoading,
   thinkingTimeMap,
 }) => {
-  const handleQuestionClick = useCallback((question, reason_content) => {
-    if (!question) return;
-    
-    
-    const message = {
-      role: "user",
-      content: question,
-      isFromSuggestion: true
-    };
-    
-    if (reason_content) {
-      message.reason_content = reason_content;
-    }
-    
-    onSubmit([message], false);
-  }, [onSubmit]);
+  const handleQuestionClick = useCallback(
+    (question, reason_content) => {
+      if (!question) return;
 
-  const handleSubmit = useCallback((messages, isRetry = false) => {
-    onSubmit(messages, isRetry);
-  }, [onSubmit]);
+      const message = {
+        role: "user",
+        content: question,
+        isFromSuggestion: true,
+      };
+
+      if (reason_content) {
+        message.reason_content = reason_content;
+      }
+
+      onSubmit([message], false);
+    },
+    [onSubmit]
+  );
+
+  const handleSubmit = useCallback(
+    (messages, isRetry = false) => {
+      onSubmit(messages, isRetry);
+    },
+    [onSubmit]
+  );
 
   return (
     <div className="flex-1 flex flex-col h-[calc(100vh-8px)] overflow-hidden bg-white rounded-xl">

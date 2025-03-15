@@ -4,18 +4,13 @@ export const keepAlive = (() => {
   return async (state) => {
     if (state && !intervalId) {
       chrome.runtime.getPlatformInfo(() => {});
-      intervalId = setInterval(
-        () => chrome.runtime.getPlatformInfo(() => {}),
-        20000
-      );
+      intervalId = setInterval(() => chrome.runtime.getPlatformInfo(() => {}), 20000);
     } else if (!state && intervalId) {
       clearInterval(intervalId);
       intervalId = null;
     }
   };
 })();
-
-
 
 export async function captureVisibleTab() {
   try {
@@ -58,14 +53,8 @@ export async function captureFullPage() {
       target: { tabId: tab.id },
       function: () => {
         return {
-          width: Math.max(
-            document.documentElement.scrollWidth,
-            document.body.scrollWidth
-          ),
-          height: Math.max(
-            document.documentElement.scrollHeight,
-            document.body.scrollHeight
-          ),
+          width: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+          height: Math.max(document.documentElement.scrollHeight, document.body.scrollHeight),
         };
       },
     });

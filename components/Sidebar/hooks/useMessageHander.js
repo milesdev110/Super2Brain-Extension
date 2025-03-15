@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { getSearchSourceStorage, getUserInput } from "../../../public/storage.js";
-import { config } from "../../config/index";
 import { getResponse } from "../components/networkPage/utils/index.js";
 import { createWebContent } from "../components/networkPage/utils/thingAgent.js";
+import { config } from "../../config/index";
+import { getUserInput } from "../../../public/storage.js";
+import { getSearchSourceStorage } from "../../../public/storage.js";
 
 const fetchRelatedQuestions = async (query, answer, userInput) => {
   const apiKey = await getUserInput();

@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from "react";
-import { Logo } from "./logo";
+import { saveUserInput, setTokenTime } from "../../../../../public/storage";
 import { useCountdown } from "../../../../Welcome/hooks/useCountdown";
 import { getCode, login } from "../../../../Welcome/service/login";
-import { saveUserInput, setTokenTime } from "../../../../../public/storage";
+import { Logo } from "./logo";
 
 const tiltShakeAnimation = `@keyframes tilt-shake {
   0% { transform: rotate(0deg); }
@@ -93,23 +93,14 @@ const Login = ({ setUserInput }) => {
       <div className="flex flex-col items-center justify-center w-full max-w-md px-6 my-auto">
         <div className="w-full flex flex-col items-center">
           <Logo className="h-12 w-auto" />
-          <h2 className="mt-8 text-2xl font-semibold text-gray-900 text-center">
-            登录您的账户
-          </h2>
+          <h2 className="mt-8 text-2xl font-semibold text-gray-900 text-center">登录您的账户</h2>
         </div>
 
         <div className="mt-8 w-full">
           <form className="space-y-5" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-lg bg-red-50 p-4 text-sm text-red-500">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-500">{error}</div>}
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 电子邮箱
               </label>
               <div className="mt-1">
@@ -131,16 +122,11 @@ const Login = ({ setUserInput }) => {
                   }`}
                 />
               </div>
-              {emailError && (
-                <p className="mt-1 text-sm text-red-500">{emailError}</p>
-              )}
+              {emailError && <p className="mt-1 text-sm text-red-500">{emailError}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="code"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
                 验证码
               </label>
               <div className="mt-1 flex gap-3">
@@ -173,9 +159,7 @@ const Login = ({ setUserInput }) => {
                     : "获取验证码"}
                 </button>
               </div>
-              {codeError && (
-                <p className="mt-1 text-sm text-red-500">{codeError}</p>
-              )}
+              {codeError && <p className="mt-1 text-sm text-red-500">{codeError}</p>}
             </div>
 
             <button

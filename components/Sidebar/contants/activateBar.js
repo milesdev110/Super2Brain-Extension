@@ -1,16 +1,4 @@
-import {
-  Settings,
-  Scissors,
-  Star,
-  ScanSearch,
-  MessageSquareText,
-  Sparkle,
-  List,
-  ScanEye,
-  Bot,
-  FileSearch,
-  LayoutList,
-} from "lucide-react";
+import { Bot, FileSearch, ScanEye, Scissors, Settings, Sparkle } from "lucide-react";
 
 export const ACTIVATE_ITEMS = [
   { id: 0, icon: ScanEye, tooltip: "网页速览" },

@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  getUserInput,
-  getDeepSeekApiKey,
-  getClaudeApiKey,
-  getOpenaiApiKey,
-  getOllamaConfig,
-  getLmstudioConfig,
-  getCustomModelIds,
   getCustomConfig,
+  getCustomModelIds,
+  getDeepSeekApiKey,
+  getLmstudioConfig,
+  getOllamaConfig,
+  getOpenaiApiKey,
   getOpenAiUrl,
+  getUserInput,
 } from "../../../../public/storage";
-import { Login } from "./modules/login";
-import { NavBar } from "./modules/navBar";
-import { ModelSettings } from "./modules/modelSetting";
-import { BaseModel } from "./modules/baseModel";
 import { About } from "./modules/about";
+import { BaseModel } from "./modules/baseModel";
+import { Login } from "./modules/login";
+import { ModelSettings } from "./modules/modelSetting";
+import { NavBar } from "./modules/navBar";
 
 const SettingsContent = ({
   setModelList,

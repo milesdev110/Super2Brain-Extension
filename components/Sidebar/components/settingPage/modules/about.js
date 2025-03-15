@@ -1,5 +1,5 @@
-import { shareAi } from "./shareAI";
 import { Mail } from "lucide-react";
+import { QRCodeImage } from "./qrcode";
 
 const About = () => {
   return (
@@ -8,8 +8,8 @@ const About = () => {
 
       <div className="flex flex-col space-y-6">
         <p className="text-lg text-gray-600 leading-relaxed">
-          Super2Brain 是您的智能助手，致力于为您提供高效、便捷的 AI
-          对话体验。我们期待与您一起探索 AI 的无限可能。
+          Super2Brain 是您的智能助手，致力于为您提供高效、便捷的 AI 对话体验。我们期待与您一起探索
+          AI 的无限可能。
         </p>
 
         <div className="flex items-center space-x-3 text-gray-700 hover:bg-gray-50 p-3 rounded-lg transition-all">
@@ -24,11 +24,7 @@ const About = () => {
       </div>
 
       <div className="flex flex-col items-center space-y-8">
-        <img
-          src={shareAi}
-          alt="shareAI二维码"
-          className="w-64 h-64 object-cover"
-        />
+        <img src={QRCodeImage} alt="shareAI二维码" className="w-64 h-64 object-cover" />
         <div className="flex flex-col space-y-4 text-center">
           <h3 className="text-2xl font-medium text-gray-800">扫码关注我们</h3>
           <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { config } from "../../config/index";
 import { getUserInput } from "../../../public/storage";
+import { config } from "../../config/index";
 
 const buildSystemMessage = () => {
   return {
@@ -34,31 +34,31 @@ const fetchRelatedQuestions = async (content) => {
     }),
   });
 
-  if (!response.ok) throw new Error('请求失败');
-  
+  if (!response.ok) throw new Error("请求失败");
+
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let fullContent = '';
+  let fullContent = "";
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+
       const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim());
-      
+      const lines = chunk.split("\n").filter((line) => line.trim());
+
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
+        if (line.startsWith("data: ")) {
           const data = line.slice(6);
-          if (data === '[DONE]') continue;
-          
+          if (data === "[DONE]") continue;
+
           try {
             const parsed = JSON.parse(data);
-            const content = parsed.choices?.[0]?.delta?.content || '';
+            const content = parsed.choices?.[0]?.delta?.content || "";
             fullContent += content;
           } catch (e) {
-            console.error('解析数据失败:', e);
+            console.error("解析数据失败:", e);
           }
         }
       }
@@ -68,21 +68,15 @@ const fetchRelatedQuestions = async (content) => {
   }
 
   return fullContent
-    .split('\n')
-    .map(q => q.trim())
-    .filter(q => q.length > 0);
+    .split("\n")
+    .map((q) => q.trim())
+    .filter((q) => q.length > 0);
 };
 
-export const useRelatedQuestions = ({
-  content = "",
-  currentUrl,
-  activatePage,
-}) => {
+export const useRelatedQuestions = ({ content = "", currentUrl, activatePage }) => {
   const [relatedQuestions, setRelatedQuestions] = useState(new Map());
   const [currentUrlLoading, setCurrentUrlLoading] = useState(false);
-  const [currentUrlRelatedQuestions, setCurrentUrlRelatedQuestions] = useState(
-    []
-  );
+  const [currentUrlRelatedQuestions, setCurrentUrlRelatedQuestions] = useState([]);
 
   const fetchQuestions = useCallback(async () => {
     setCurrentUrlLoading(true);

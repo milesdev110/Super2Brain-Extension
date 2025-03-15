@@ -1,8 +1,8 @@
-import { useMemo } from "react";
-import { marked } from "marked";
-import { Package, ScanEye } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { Package, ScanEye } from "lucide-react";
+import { marked } from "marked";
+import { useMemo } from "react";
 import { CouldNotGetWebContent } from "./couldNotGetWebContent";
 
 const PlaceHolder = ({ refreshData, currentUrl, pageContent }) => {

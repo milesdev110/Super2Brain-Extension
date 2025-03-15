@@ -1,5 +1,5 @@
-import { config } from "../../../../config";
 import { getUserInput } from "../../../../../public/storage";
+import { config } from "../../../../config";
 
 const processDocument = async (messages) => {
   const token = await getUserInput();

@@ -66,8 +66,7 @@
   }
   const y = { isSvg: !1 };
   function x(t, e) {
-    Array.isArray(e) || (e = [e]),
-      (e = e.filter(Boolean)).length && t.append(...e);
+    Array.isArray(e) || (e = [e]), (e = e.filter(Boolean)).length && t.append(...e);
   }
   const k = { className: "class", labelFor: "for" };
   function b(t, e, n, r) {
@@ -79,9 +78,7 @@
     }
   }
   function S(t, e) {
-    return Array.isArray(t)
-      ? t.map((t) => S(t, e)).reduce((t, e) => t.concat(e), [])
-      : w(t, e);
+    return Array.isArray(t) ? t.map((t) => S(t, e)).reduce((t, e) => t.concat(e), []) : w(t, e);
   }
   function w(t, e = y) {
     if (null == t || "boolean" == typeof t) return null;
@@ -103,9 +100,7 @@
       const { type: r, props: i } = t;
       if (
         (e.isSvg || "svg" !== r || (e = Object.assign({}, e, { isSvg: !0 })),
-        (n = e.isSvg
-          ? document.createElementNS(h, r)
-          : document.createElement(r)),
+        (n = e.isSvg ? document.createElementNS(h, r) : document.createElement(r)),
         (function (t, e, n) {
           for (const r in e)
             if ("key" !== r && "children" !== r && "ref" !== r)
@@ -118,17 +113,12 @@
               ) {
                 const n = e[r];
                 null != n && (t[r] = n);
-              } else
-                r.startsWith("on")
-                  ? (t[r.toLowerCase()] = e[r])
-                  : b(t, r, e[r], n.isSvg);
+              } else r.startsWith("on") ? (t[r.toLowerCase()] = e[r]) : b(t, r, e[r], n.isSvg);
         })(n, i, e),
         i.children)
       ) {
         let t = e;
-        e.isSvg &&
-          "foreignObject" === r &&
-          (t = Object.assign({}, t, { isSvg: !1 }));
+        e.isSvg && "foreignObject" === r && (t = Object.assign({}, t, { isSvg: !1 }));
         const a = S(i.children, t);
         null != a && x(n, a);
       }
@@ -148,16 +138,13 @@
         return i || ((i = { value: t(...n) }), (e[r] = i)), i.value;
       };
     })((t) => {
-      document.head.append(
-        z("link", { rel: "preload", as: "script", href: t })
-      );
+      document.head.append(z("link", { rel: "preload", as: "script", href: t }));
     }),
     C = {},
     j = {};
   async function X(t, e) {
     var n;
-    const r =
-      ("script" === t.type && (null == (n = t.data) ? void 0 : n.src)) || "";
+    const r = ("script" === t.type && (null == (n = t.data) ? void 0 : n.src)) || "";
     if ((t.loaded || (t.loaded = C[r]), !t.loaded)) {
       const n = s();
       if (
@@ -179,9 +166,7 @@
     }
     await t.loaded;
   }
-  const A =
-      "undefined" != typeof navigator &&
-      navigator.userAgent.includes("Macintosh"),
+  const A = "undefined" != typeof navigator && navigator.userAgent.includes("Macintosh"),
     M = e.scaleOrdinal(e.schemeCategory10),
     O = {
       autoFit: !1,
@@ -224,8 +209,7 @@
   }
   const H = { isSvg: !1 };
   function F(t, e) {
-    Array.isArray(e) || (e = [e]),
-      (e = e.filter(Boolean)).length && t.append(...e);
+    Array.isArray(e) || (e = [e]), (e = e.filter(Boolean)).length && t.append(...e);
   }
   const P = { className: "class", labelFor: "for" };
   function Y(t, e, n, r) {
@@ -237,9 +221,7 @@
     }
   }
   function _(t, e) {
-    return Array.isArray(t)
-      ? t.map((t) => _(t, e)).reduce((t, e) => t.concat(e), [])
-      : W(t, e);
+    return Array.isArray(t) ? t.map((t) => _(t, e)).reduce((t, e) => t.concat(e), []) : W(t, e);
   }
   function W(t, e = H) {
     if (null == t || "boolean" == typeof t) return null;
@@ -261,9 +243,7 @@
       const { type: r, props: i } = t;
       if (
         (e.isSvg || "svg" !== r || (e = Object.assign({}, e, { isSvg: !0 })),
-        (n = e.isSvg
-          ? document.createElementNS(N, r)
-          : document.createElement(r)),
+        (n = e.isSvg ? document.createElementNS(N, r) : document.createElement(r)),
         (function (t, e, n) {
           for (const r in e)
             if ("key" !== r && "children" !== r && "ref" !== r)
@@ -276,17 +256,12 @@
               ) {
                 const n = e[r];
                 null != n && (t[r] = n);
-              } else
-                r.startsWith("on")
-                  ? (t[r.toLowerCase()] = e[r])
-                  : Y(t, r, e[r], n.isSvg);
+              } else r.startsWith("on") ? (t[r.toLowerCase()] = e[r]) : Y(t, r, e[r], n.isSvg);
         })(n, i, e),
         i.children)
       ) {
         let t = e;
-        e.isSvg &&
-          "foreignObject" === r &&
-          (t = Object.assign({}, t, { isSvg: !1 }));
+        e.isSvg && "foreignObject" === r && (t = Object.assign({}, t, { isSvg: !1 }));
         const a = _(i.children, t);
         null != a && F(n, a);
       }
@@ -318,9 +293,7 @@
     for (null == e && (e = G); (n = c.pop()); )
       if ((l && (n.value = +n.data.value), (i = e(n.data)) && (o = i.length)))
         for (n.children = new Array(o), a = o - 1; a >= 0; --a)
-          c.push((r = n.children[a] = new J(i[a]))),
-            (r.parent = n),
-            (r.depth = n.depth + 1);
+          c.push((r = n.children[a] = new J(i[a]))), (r.parent = n), (r.depth = n.depth + 1);
     return s.eachBefore(q);
   }
   function G(t) {
@@ -352,31 +325,24 @@
         o = [a];
       do {
         for (e = o.reverse(), o = []; (a = e.pop()); )
-          if ((t(a), (n = a.children)))
-            for (r = 0, i = n.length; r < i; ++r) o.push(n[r]);
+          if ((t(a), (n = a.children))) for (r = 0, i = n.length; r < i; ++r) o.push(n[r]);
       } while (o.length);
       return this;
     },
     eachAfter: function (t) {
       for (var e, n, r, i = this, a = [i], o = []; (i = a.pop()); )
-        if ((o.push(i), (e = i.children)))
-          for (n = 0, r = e.length; n < r; ++n) a.push(e[n]);
+        if ((o.push(i), (e = i.children))) for (n = 0, r = e.length; n < r; ++n) a.push(e[n]);
       for (; (i = o.pop()); ) t(i);
       return this;
     },
     eachBefore: function (t) {
       for (var e, n, r = this, i = [r]; (r = i.pop()); )
-        if ((t(r), (e = r.children)))
-          for (n = e.length - 1; n >= 0; --n) i.push(e[n]);
+        if ((t(r), (e = r.children))) for (n = e.length - 1; n >= 0; --n) i.push(e[n]);
       return this;
     },
     sum: function (t) {
       return this.eachAfter(function (e) {
-        for (
-          var n = +t(e.data) || 0, r = e.children, i = r && r.length;
-          --i >= 0;
-
-        )
+        for (var n = +t(e.data) || 0, r = e.children, i = r && r.length; --i >= 0; )
           n += r[i].value;
         e.value = n;
       });
@@ -449,8 +415,7 @@
       module: "index",
       "jsnext:main": "index",
       author: { name: "Chris Maloney", url: "http://chrismaloney.org" },
-      description:
-        "Flexible tree layout algorithm that allows for variable node sizes.",
+      description: "Flexible tree layout algorithm that allows for variable node sizes.",
       keywords: [
         "d3",
         "d3-module",
@@ -698,10 +663,7 @@
                 { x: o, y: s } = n,
                 l = e(n),
                 c = n.children || [],
-                h =
-                  0 === c.length
-                    ? " "
-                    : `,${i}children: [${a}${c.map(r(a)).join(a)}${i}],${t}`;
+                h = 0 === c.length ? " " : `,${i}children: [${a}${c.map(r(a)).join(a)}${i}],${t}`;
               return `{ size: [${l.join(", ")}],${i}x: ${o}, y: ${s}${h}},`;
             };
           return r("\n")(t);
@@ -759,19 +721,11 @@
         c = !0;
       for (; a && s; ) {
         a.bottom > n.lowY && (n = n.next);
-        const r =
-          o +
-          a.prelim -
-          (l + s.prelim) +
-          a.xSize / 2 +
-          s.xSize / 2 +
-          a.spacing(s);
-        (r > 0 || (r < 0 && c)) && ((l += r), st(i, r), lt(t, e, n.index, r)),
-          (c = !1);
+        const r = o + a.prelim - (l + s.prelim) + a.xSize / 2 + s.xSize / 2 + a.spacing(s);
+        (r > 0 || (r < 0 && c)) && ((l += r), st(i, r), lt(t, e, n.index, r)), (c = !1);
         const h = a.bottom,
           d = s.bottom;
-        h <= d && ((a = ht(a)), a && (o += a.relX)),
-          h >= d && ((s = ct(s)), s && (l += s.relX));
+        h <= d && ((a = ht(a)), a && (o += a.relX)), h >= d && ((s = ct(s)), s && (l += s.relX));
       }
       !a && s ? dt(t, e, s, l) : a && !s && ut(t, e, a, o);
     },
@@ -794,10 +748,7 @@
         o = t.children[e];
       a.lThr = n;
       const s = r - n.relX - i.lExtRelX;
-      (a.relX += s),
-        (a.prelim -= s),
-        (i.lExt = o.lExt),
-        (i.lExtRelX = o.lExtRelX);
+      (a.relX += s), (a.prelim -= s), (i.lExt = o.lExt), (i.lExtRelX = o.lExtRelX);
     },
     ut = (t, e, n, r) => {
       const i = t.children[e],
@@ -805,23 +756,13 @@
         o = t.children[e - 1];
       a.rThr = n;
       const s = r - n.relX - i.rExtRelX;
-      (a.relX += s),
-        (a.prelim -= s),
-        (i.rExt = o.rExt),
-        (i.rExtRelX = o.rExtRelX);
+      (a.relX += s), (a.prelim -= s), (i.rExt = o.rExt), (i.rExtRelX = o.rExtRelX);
     },
     pt = (t) => {
       if (t.hasChildren) {
         const e = t.firstChild,
           n = t.lastChild,
-          r =
-            (e.prelim +
-              e.relX -
-              e.xSize / 2 +
-              n.relX +
-              n.prelim +
-              n.xSize / 2) /
-            2;
+          r = (e.prelim + e.relX - e.xSize / 2 + n.relX + n.prelim + n.xSize / 2) / 2;
         Object.assign(t, {
           prelim: r,
           lExt: e.lExt,
@@ -899,10 +840,7 @@
           .on("zoom", this.handleZoom)),
         this.setOptions(i),
         (this.state = {
-          id:
-            this.options.id ||
-            this.svg.attr("id") ||
-            ((r += 1), `mm-${n}-${r}`),
+          id: this.options.id || this.svg.attr("id") || ((r += 1), `mm-${n}-${r}`),
           minX: 0,
           maxX: 0,
           minY: 0,
@@ -918,9 +856,7 @@
             r(), n.args && (n.result = t(...n.args));
           }
           return function (...t) {
-            return (
-              r(), (n.args = t), (n.timer = window.setTimeout(i, e)), n.result
-            );
+            return r(), (n.args = t), (n.timer = window.setTimeout(i, e)), n.result;
           };
         })(() => this.setData(), 200)),
         this.revokers.push(
@@ -966,17 +902,10 @@
     }
     initializeData(t) {
       let e = 0;
-      const {
-          color: n,
-          nodeMinHeight: r,
-          maxWidth: i,
-          initialExpandLevel: o,
-        } = this.options,
+      const { color: n, nodeMinHeight: r, maxWidth: i, initialExpandLevel: o } = this.options,
         { id: s } = this.state,
         l = V(I("div", { className: `markmap-container markmap ${s}-g` })),
-        c = V(
-          I("style", { children: [this.getStyleContent(), ft].join("\n") })
-        );
+        c = V(I("style", { children: [this.getStyleContent(), ft].join("\n") }));
       document.body.append(l, c);
       const h = i ? `--markmap-max-width: ${i}px` : "";
       let d = 0,
@@ -984,8 +913,7 @@
       a(t, (t, r, i) => {
         var a, s, c;
         (u += 1),
-          (t.children =
-            null == (a = t.children) ? void 0 : a.map((t) => ({ ...t }))),
+          (t.children = null == (a = t.children) ? void 0 : a.map((t) => ({ ...t }))),
           (e += 1);
         const p = V(
           I("div", {
@@ -998,18 +926,14 @@
         );
         l.append(p),
           (t.state = { ...t.state, depth: u, id: e, el: p.firstChild }),
-          (t.state.path = [
-            null == (s = null == i ? void 0 : i.state) ? void 0 : s.path,
-            t.state.id,
-          ]
+          (t.state.path = [null == (s = null == i ? void 0 : i.state) ? void 0 : s.path, t.state.id]
             .filter(Boolean)
             .join(".")),
           n(t);
         const m = 2 === (null == (c = t.payload) ? void 0 : c.fold);
         m
           ? (d += 1)
-          : (d || (o >= 0 && t.state.depth >= o)) &&
-            (t.payload = { ...t.payload, fold: 1 }),
+          : (d || (o >= 0 && t.state.depth >= o)) && (t.payload = { ...t.payload, fold: 1 }),
           r(),
           m && (d -= 1),
           (u -= 1);
@@ -1025,10 +949,7 @@
           const a = t.state,
             o = a.el.getBoundingClientRect();
           (t.content = a.el.innerHTML),
-            (a.size = [
-              Math.ceil(o.width) + 1,
-              Math.max(Math.ceil(o.height), r),
-            ]),
+            (a.size = [Math.ceil(o.width) + 1, Math.max(Math.ceil(o.height), r)]),
             (a.key =
               [null == (i = null == n ? void 0 : n.state) ? void 0 : i.id, a.id]
                 .filter(Boolean)
@@ -1042,9 +963,7 @@
       t.querySelectorAll("img").forEach((t) => {
         if (t.width) return;
         const e = this.imgCache[t.src];
-        (null == e ? void 0 : e[0])
-          ? ([t.width, t.height] = e)
-          : e || this._loadImage(t.src);
+        (null == e ? void 0 : e[0]) ? ([t.width, t.height] = e) : e || this._loadImage(t.src);
       });
     }
     _loadImage(t) {
@@ -1052,26 +971,19 @@
       const e = new Image();
       (e.src = t),
         (e.onload = () => {
-          (this.imgCache[t] = [e.naturalWidth, e.naturalHeight]),
-            this.debouncedRefresh();
+          (this.imgCache[t] = [e.naturalWidth, e.naturalHeight]), this.debouncedRefresh();
         });
     }
     setOptions(t) {
       (this.options = { ...this.options, ...t }),
-        this.options.zoom
-          ? this.svg.call(this.zoom)
-          : this.svg.on(".zoom", null),
-        this.options.pan
-          ? this.svg.on("wheel", this.handlePan)
-          : this.svg.on("wheel", null);
+        this.options.zoom ? this.svg.call(this.zoom) : this.svg.on(".zoom", null),
+        this.options.pan ? this.svg.on("wheel", this.handlePan) : this.svg.on("wheel", null);
     }
     setData(t, e) {
       e && this.setOptions(e),
         t && (this.state.data = t),
         this.state.data &&
-          (this.initializeData(this.state.data),
-          this.updateStyle(),
-          this.renderData());
+          (this.initializeData(this.state.data), this.updateStyle(), this.renderData());
     }
     renderData(t) {
       if (!this.state.data) return;
@@ -1101,8 +1013,7 @@
         m = e.max(h, (t) => t.x + t.xSize / 2),
         f = e.min(h, (t) => t.y),
         g = e.max(h, (t) => t.y + t.ySize - n);
-      Object.assign(this.state, { minX: p, maxX: m, minY: f, maxY: g }),
-        a && this.fit();
+      Object.assign(this.state, { minX: p, maxX: m, minY: f, maxY: g }), a && this.fit();
       const v = (t && h.find((e) => e.data === t)) || c,
         y = v.data.state.x0 ?? v.x,
         x = v.data.state.y0 ?? v.y,
@@ -1114,8 +1025,7 @@
           .attr("data-path", (t) => t.data.state.path)
           .attr(
             "transform",
-            (t) =>
-              `translate(${x + v.ySize - t.ySize},${y + v.xSize / 2 - t.xSize})`
+            (t) => `translate(${x + v.ySize - t.ySize},${y + v.xSize / 2 - t.xSize})`
           ),
         S = this.transition(k.exit());
       S.select("line")
@@ -1124,24 +1034,15 @@
         S.select("foreignObject").style("opacity", 0),
         S.attr(
           "transform",
-          (t) =>
-            `translate(${v.y + v.ySize - t.ySize},${
-              v.x + v.xSize / 2 - t.xSize
-            })`
+          (t) => `translate(${v.y + v.ySize - t.ySize},${v.x + v.xSize / 2 - t.xSize})`
         ).remove();
       const w = k.merge(b).attr("class", (t) => {
         var e;
-        return [
-          "markmap-node",
-          (null == (e = t.data.payload) ? void 0 : e.fold) && "markmap-fold",
-        ]
+        return ["markmap-node", (null == (e = t.data.payload) ? void 0 : e.fold) && "markmap-fold"]
           .filter(Boolean)
           .join(" ");
       });
-      this.transition(w).attr(
-        "transform",
-        (t) => `translate(${t.y},${t.x - t.xSize / 2})`
-      );
+      this.transition(w).attr("transform", (t) => `translate(${t.y},${t.x - t.xSize / 2})`);
       const z = w
         .selectAll(o("line"))
         .data(
@@ -1169,9 +1070,7 @@
         .data(
           (t) => {
             var e;
-            return (null == (e = t.data.children) ? void 0 : e.length)
-              ? [t]
-              : [];
+            return (null == (e = t.data.children) ? void 0 : e.length) ? [t] : [];
           },
           (t) => t.data.state.key
         )
@@ -1195,8 +1094,7 @@
         .attr("stroke", (t) => s(t.data))
         .attr("fill", (t) => {
           var e;
-          return (null == (e = t.data.payload) ? void 0 : e.fold) &&
-            t.data.children
+          return (null == (e = t.data.payload) ? void 0 : e.fold) && t.data.children
             ? s(t.data)
             : "var(--markmap-circle-open-bg)";
         });
@@ -1280,13 +1178,8 @@
         h = c - l,
         d = s - o,
         u = Math.min((n / h) * a, (r / d) * a, 2),
-        p = e.zoomIdentity
-          .translate((n - h * u) / 2 - l * u, (r - d * u) / 2 - o * u)
-          .scale(u);
-      return this.transition(this.svg)
-        .call(this.zoom.transform, p)
-        .end()
-        .catch(i);
+        p = e.zoomIdentity.translate((n - h * u) / 2 - l * u, (r - d * u) / 2 - o * u).scale(u);
+      return this.transition(this.svg).call(this.zoom.transform, p).end().catch(i);
     }
     findElement(t) {
       let e;
@@ -1306,9 +1199,7 @@
         l = o.getBoundingClientRect(),
         c = e.zoomTransform(o),
         [h, d] = [a.y, a.y + a.ySize - s + 2].map((t) => t * c.k + c.x),
-        [u, p] = [a.x - a.xSize / 2, a.x + a.xSize / 2].map(
-          (t) => t * c.k + c.y
-        ),
+        [u, p] = [a.x - a.xSize / 2, a.x + a.xSize / 2].map((t) => t * c.k + c.y),
         m = { left: 0, right: 0, top: 0, bottom: 0, ...n },
         f = [m.left - h, l.width - m.right - d],
         g = [m.top - u, l.height - m.bottom - p],
@@ -1316,10 +1207,7 @@
         y = g[0] * g[1] > 0 ? xt(g, Math.abs) / c.k : 0;
       if (v || y) {
         const t = c.translate(v, y);
-        return this.transition(this.svg)
-          .call(this.zoom.transform, t)
-          .end()
-          .catch(i);
+        return this.transition(this.svg).call(this.zoom.transform, t).end().catch(i);
       }
     }
     async rescale(t) {
@@ -1328,13 +1216,8 @@
         o = r / 2,
         s = a / 2,
         l = e.zoomTransform(n),
-        c = l
-          .translate(((o - l.x) * (1 - t)) / l.k, ((s - l.y) * (1 - t)) / l.k)
-          .scale(t);
-      return this.transition(this.svg)
-        .call(this.zoom.transform, c)
-        .end()
-        .catch(i);
+        c = l.translate(((o - l.x) * (1 - t)) / l.k, ((s - l.y) * (1 - t)) / l.k).scale(t);
+      return this.transition(this.svg).call(this.zoom.transform, c).end().catch(i);
     }
     destroy() {
       this.svg.on(".zoom", null),
@@ -1399,12 +1282,9 @@
               (t.loaded = n.promise),
                 e && (j[e] = t.loaded),
                 "style" === t.type
-                  ? (document.head.append(z("style", { textContent: t.data })),
-                    n.resolve())
+                  ? (document.head.append(z("style", { textContent: t.data })), n.resolve())
                   : e &&
-                    (document.head.append(
-                      z("link", { rel: "stylesheet", ...t.data })
-                    ),
+                    (document.head.append(z("link", { rel: "stylesheet", ...t.data })),
                     fetch(e)
                       .then((t) => {
                         if (t.ok) return t.text();
@@ -1420,9 +1300,7 @@
     (t.loadJS = async function (t, e) {
       t.forEach((t) => {
         var e;
-        "script" === t.type &&
-          (null == (e = t.data) ? void 0 : e.src) &&
-          E(t.data.src);
+        "script" === t.type && (null == (e = t.data) ? void 0 : e.src) && E(t.data.src);
       }),
         (e = { getMarkmap: () => window.markmap, ...e });
       for (const n of t) await X(n, e);

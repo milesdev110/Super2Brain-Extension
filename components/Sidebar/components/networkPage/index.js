@@ -1,11 +1,11 @@
-import { Plus, Send, Trash2, Search, RefreshCw } from "lucide-react";
+import { Search, Send, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Tooltip } from "react-tooltip";
-import { useState, useMemo, useEffect, useDebugValue } from "react";
 import { super2brainModel } from "../../config/models.js";
-import { MessageRenderer } from "./modules/MessageRenderer";
-import { ModelSelector } from "../common/modelSelect.js";
 import { useSearchEngine } from "../../hooks/useSearchEngine";
+import { ModelSelector } from "../common/modelSelect.js";
 import { ModelSelector2 } from "../common/modelSelect2";
+import { MessageRenderer } from "./modules/messageRender.js";
 
 const NetworkSearch = ({
   userInput,
@@ -16,7 +16,7 @@ const NetworkSearch = ({
   setSelectedModelIsSupportsImage,
   checkBalance,
   setNetworkSelectedModel,
-  message,
+  message = [],
   networkSelectedModel,
   isLoading,
   handleNetworkSubmit,
@@ -29,15 +29,20 @@ const NetworkSearch = ({
   const [query, setQuery] = useState("");
   const [networkTimer, setNetworkTimer] = useState(null);
   const [networkElapsedTime, setNetworkElapsedTime] = useState(0);
-  const { searchSource } = useSearchEngine();
-  const model = super2brainModel[networkSelectedModel]?.id || "选择模型";
+  const [isSendAgain, setIsSendAgain] = useState(true);
+
+  const { searchSource } =
+    typeof window !== "undefined" ? useSearchEngine() : { searchSource: null };
+
+  const modelId =
+    networkSelectedModel && super2brainModel[networkSelectedModel]?.id
+      ? super2brainModel[networkSelectedModel].id
+      : "选择模型";
 
   const handleModelSelect = (modelId) => {
     setNetworkSelectedModel(modelId);
     setIsOpen(false);
   };
-
-  const [isSendAgain, setIsSendAgain] = useState(true);
 
   useEffect(() => {
     if (message.length > 0) {
@@ -56,16 +61,18 @@ const NetworkSearch = ({
     stopTimer();
     setNetworkElapsedTime(0);
 
-    const startTime = Date.now();
-    const timerInterval = setInterval(() => {
-      setNetworkElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-    }, 1000);
+    if (typeof window !== "undefined") {
+      const startTime = Date.now();
+      const timerInterval = setInterval(() => {
+        setNetworkElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
 
-    setNetworkTimer(timerInterval);
+      setNetworkTimer(timerInterval);
+    }
   };
 
   const stopTimer = () => {
-    if (networkTimer) {
+    if (networkTimer && typeof window !== "undefined") {
       clearInterval(networkTimer);
       setNetworkTimer(null);
     }
@@ -74,13 +81,13 @@ const NetworkSearch = ({
   const handleMessageSubmit = async () => {
     if (!userInput || !query.trim() || isLoading || !isSendAgain) return;
 
-    const message = query;
+    const messageText = query;
     setQuery("");
 
     try {
       setNetworkElapsedTime(0);
       startTimer();
-      await handleNetworkSubmit(message);
+      await handleNetworkSubmit(messageText);
     } catch (error) {
       console.error("发送消息时出错:", error);
       stopTimer();
@@ -103,6 +110,10 @@ const NetworkSearch = ({
       handleMessageSubmit();
     }
   };
+
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   return (
     <div className="w-full h-[calc(100vh-8px)] rounded-xl flex flex-col bg-white">
@@ -183,7 +194,7 @@ const NetworkSearch = ({
                   <ModelSelector
                     isOpen={isOpen}
                     setIsOpen={setIsOpen}
-                    model={model}
+                    model={modelId}
                     selectedModel={networkSelectedModel}
                     handleModelSelect={handleModelSelect}
                     super2brainModel={super2brainModel}
@@ -200,7 +211,7 @@ const NetworkSearch = ({
                     <ModelSelector
                       isOpen={false}
                       setIsOpen={() => {}}
-                      model={model}
+                      model={modelId}
                       selectedModel={networkSelectedModel}
                       handleModelSelect={() => {}}
                       super2brainModel={super2brainModel}

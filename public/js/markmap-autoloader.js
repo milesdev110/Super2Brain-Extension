@@ -40,9 +40,7 @@
         }
       }
       async findFastestProvider(e, t) {
-        return (
-          (this.provider = await this.getFastestProvider(e, t)), this.provider
-        );
+        return (this.provider = await this.getFastestProvider(e, t)), this.provider;
       }
       setProvider(e, t) {
         t ? (this.providers[e] = t) : delete this.providers[e];
@@ -82,18 +80,14 @@
           r = s;
         }
         return { vtype: r, type: e, props: t };
-      })(
-        e,
-        (t = Object.assign({}, t, { children: 1 === r.length ? r[0] : r }))
-      );
+      })(e, (t = Object.assign({}, t, { children: 1 === r.length ? r[0] : r })));
     }
     function m(e) {
       return e.children;
     }
     const v = { isSvg: !1 };
     function h(e, t) {
-      Array.isArray(t) || (t = [t]),
-        (t = t.filter(Boolean)).length && e.append(...t);
+      Array.isArray(t) || (t = [t]), (t = t.filter(Boolean)).length && e.append(...t);
     }
     const y = { className: "class", labelFor: "for" };
     function g(e, t, r, n) {
@@ -105,9 +99,7 @@
       }
     }
     function w(e, t) {
-      return Array.isArray(e)
-        ? e.map((e) => w(e, t)).reduce((e, t) => e.concat(t), [])
-        : b(e, t);
+      return Array.isArray(e) ? e.map((e) => w(e, t)).reduce((e, t) => e.concat(t), []) : b(e, t);
     }
     function b(e, t = v) {
       if (null == e || "boolean" == typeof e) return null;
@@ -129,9 +121,7 @@
         const { type: n, props: o } = e;
         if (
           (t.isSvg || "svg" !== n || (t = Object.assign({}, t, { isSvg: !0 })),
-          (r = t.isSvg
-            ? document.createElementNS(i, n)
-            : document.createElement(n)),
+          (r = t.isSvg ? document.createElementNS(i, n) : document.createElement(n)),
           (function (e, t, r) {
             for (const n in t)
               if ("key" !== n && "children" !== n && "ref" !== n)
@@ -144,17 +134,12 @@
                 ) {
                   const r = t[n];
                   null != r && (e[n] = r);
-                } else
-                  n.startsWith("on")
-                    ? (e[n.toLowerCase()] = t[n])
-                    : g(e, n, t[n], r.isSvg);
+                } else n.startsWith("on") ? (e[n.toLowerCase()] = t[n]) : g(e, n, t[n], r.isSvg);
           })(r, o, t),
           o.children)
         ) {
           let e = t;
-          t.isSvg &&
-            "foreignObject" === n &&
-            (e = Object.assign({}, e, { isSvg: !1 }));
+          t.isSvg && "foreignObject" === n && (e = Object.assign({}, e, { isSvg: !1 }));
           const a = w(o.children, e);
           null != a && h(r, a);
         }
@@ -174,16 +159,13 @@
           return o || ((o = { value: e(...r) }), (t[n] = o)), o.value;
         };
       })((e) => {
-        document.head.append(
-          k("link", { rel: "preload", as: "script", href: e })
-        );
+        document.head.append(k("link", { rel: "preload", as: "script", href: e }));
       }),
       j = {},
       P = {};
     async function A(e, t) {
       var r;
-      const n =
-        ("script" === e.type && (null == (r = e.data) ? void 0 : r.src)) || "";
+      const n = ("script" === e.type && (null == (r = e.data) ? void 0 : r.src)) || "";
       if ((e.loaded || (e.loaded = j[n]), !e.loaded)) {
         const r = o();
         if (
@@ -208,9 +190,7 @@
     async function E(e, t) {
       e.forEach((e) => {
         var t;
-        "script" === e.type &&
-          (null == (t = e.data) ? void 0 : t.src) &&
-          S(e.data.src);
+        "script" === e.type && (null == (t = e.data) ? void 0 : t.src) && S(e.data.src);
       }),
         (t = { getMarkmap: () => window.markmap, ...t });
       for (const r of e) await A(r, t);
@@ -225,12 +205,9 @@
               (e.loaded = r.promise),
                 t && (P[t] = e.loaded),
                 "style" === e.type
-                  ? (document.head.append(k("style", { textContent: e.data })),
-                    r.resolve())
+                  ? (document.head.append(k("style", { textContent: e.data })), r.resolve())
                   : t &&
-                    (document.head.append(
-                      k("link", { rel: "stylesheet", ...e.data })
-                    ),
+                    (document.head.append(k("link", { rel: "stylesheet", ...e.data })),
                     fetch(t)
                       .then((e) => {
                         if (e.ok) return e.text();
@@ -245,12 +222,7 @@
     }
     const C = {},
       L = {
-        baseJs: [
-          "d3@7.8.5",
-          "markmap-lib@0.17.0",
-          "markmap-view@0.17.0",
-          "markmap-toolbar@0.17.0",
-        ],
+        baseJs: ["d3@7.8.5", "markmap-lib@0.17.0", "markmap-view@0.17.0", "markmap-toolbar@0.17.0"],
         baseCss: ["markmap-toolbar@0.17.0/dist/style.css"],
         manual: !1,
         toolbar: !1,
@@ -258,8 +230,7 @@
       };
     const T = (async function () {
       var e;
-      if ("function" == typeof L.provider)
-        n.setProvider((n.provider = "autoLoader"), L.provider);
+      if ("function" == typeof L.provider) n.setProvider((n.provider = "autoLoader"), L.provider);
       else if ("string" == typeof L.provider) n.provider = L.provider;
       else
         try {
@@ -268,33 +239,22 @@
       await Promise.all([
         E(
           L.baseJs.map((e) =>
-            "string" == typeof e
-              ? { type: "script", data: { src: n.getFullUrl(e) } }
-              : e
+            "string" == typeof e ? { type: "script", data: { src: n.getFullUrl(e) } } : e
           )
         ),
         x(
           L.baseCss.map((e) =>
-            "string" == typeof e
-              ? { type: "stylesheet", data: { href: n.getFullUrl(e) } }
-              : e
+            "string" == typeof e ? { type: "stylesheet", data: { href: n.getFullUrl(e) } } : e
           )
         ),
       ]);
       const { markmap: t } = window,
         r = document.createElement("style");
-      (r.textContent = t.globalCSS),
-        document.body.prepend(r),
-        null == (e = L.onReady) || e.call(L);
+      (r.textContent = t.globalCSS), document.body.prepend(r), null == (e = L.onReady) || e.call(L);
     })();
     function M(e) {
       var t;
-      const {
-          Transformer: r,
-          Markmap: o,
-          deriveOptions: a,
-          Toolbar: s,
-        } = window.markmap,
+      const { Transformer: r, Markmap: o, deriveOptions: a, Toolbar: s } = window.markmap,
         i = (null == (t = e.textContent) ? void 0 : t.split("\n")) || [];
       let l = 1 / 0;
       i.forEach((e) => {

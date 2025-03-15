@@ -1,4 +1,4 @@
-import { RefreshCw, Bell } from "lucide-react";
+import { Bell, RefreshCw } from "lucide-react";
 
 const Notification = () => {
   const notifications = [
@@ -25,11 +25,7 @@ const Notification = () => {
   const renderNotificationCard = ({ type, title, content, time }) => (
     <div className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-all duration-200 border border-gray-100">
       <div className="flex items-center gap-3 mb-3">
-        <div
-          className={`p-2.5 rounded-full ${
-            type === "update" ? "bg-blue-100" : "bg-green-100"
-          }`}
-        >
+        <div className={`p-2.5 rounded-full ${type === "update" ? "bg-blue-100" : "bg-green-100"}`}>
           {type === "update" ? (
             <RefreshCw className="w-5 h-5 text-blue-600" />
           ) : (

@@ -56,8 +56,7 @@ const modelAdapters = {
       usage: {
         prompt_tokens: response.usage.input_tokens,
         completion_tokens: response.usage.output_tokens,
-        total_tokens:
-          response.usage.input_tokens + response.usage.output_tokens,
+        total_tokens: response.usage.input_tokens + response.usage.output_tokens,
       },
     }),
   },
@@ -138,18 +137,9 @@ const MODEL_MAPPING = {
   "Deepseek-R1": "deepseek-reasoner",
 };
 
-const removeTrailingV1 = (url) =>
-  url.endsWith("/v1") ? url.slice(0, -3) : url;
+const removeTrailingV1 = (url) => (url.endsWith("/v1") ? url.slice(0, -3) : url);
 
-const callAI = async ({
-  provider,
-  baseUrl,
-  apiKey,
-  model,
-  messages,
-  options = {},
-}) => {
-
+const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {} }) => {
   const cleanBaseUrl = removeTrailingV1(baseUrl);
 
   const adapter = modelAdapters[provider];
@@ -168,17 +158,13 @@ const callAI = async ({
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(
-        adapter.transformRequest(
-          createUnifiedRequest(messages, { ...options, model: mappedModel })
-        )
+        adapter.transformRequest(createUnifiedRequest(messages, { ...options, model: mappedModel }))
       ),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `HTTP error! status: ${response.status}, body: ${errorText}`
-      );
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
     }
 
     const data = await response.json();

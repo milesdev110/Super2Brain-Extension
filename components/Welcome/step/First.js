@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from "react";
-import { Logo } from "../modules/logo";
-import { useCountdown } from "../hooks/useCountdown";
-import { getCode, login } from "../service/login";
 import { saveUserInput, setTokenTime } from "../../../public/storage";
+import { useCountdown } from "../hooks/useCountdown";
+import { Logo } from "../modules/logo";
+import { getCode, login } from "../service/login";
 
 const tiltShakeAnimation = `@keyframes tilt-shake {
   0% { transform: rotate(0deg); }
@@ -93,9 +93,7 @@ export default function First({ onNext, apiKey, setApiKey }) {
       <div className="flex flex-col justify-center">
         <div className="w-full max-w-md">
           <Logo className="h-12 w-auto" />
-          <h2 className="mt-8 text-2xl font-semibold text-gray-900">
-            登录 / 注册账户
-          </h2>
+          <h2 className="mt-8 text-2xl font-semibold text-gray-900">登录 / 注册账户</h2>
           <p className="mt-2 text-sm text-gray-600">
             输入您的邮箱地址，新用户将自动完成注册,并登录账户
           </p>
@@ -103,16 +101,9 @@ export default function First({ onNext, apiKey, setApiKey }) {
 
         <div className="mt-8 w-full max-w-md">
           <form className="space-y-5" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-lg bg-red-50 p-4 text-sm text-red-500">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-500">{error}</div>}
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 电子邮箱
               </label>
               <div className="mt-1">
@@ -134,16 +125,11 @@ export default function First({ onNext, apiKey, setApiKey }) {
                   }`}
                 />
               </div>
-              {emailError && (
-                <p className="mt-1 text-sm text-red-500">{emailError}</p>
-              )}
+              {emailError && <p className="mt-1 text-sm text-red-500">{emailError}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="code"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
                 验证码
               </label>
               <div className="mt-1 flex gap-3">
@@ -176,9 +162,7 @@ export default function First({ onNext, apiKey, setApiKey }) {
                     : "获取验证码"}
                 </button>
               </div>
-              {codeError && (
-                <p className="mt-1 text-sm text-red-500">{codeError}</p>
-              )}
+              {codeError && <p className="mt-1 text-sm text-red-500">{codeError}</p>}
             </div>
 
             <button
@@ -192,17 +176,11 @@ export default function First({ onNext, apiKey, setApiKey }) {
 
           <p className="mt-6 text-center text-sm text-gray-600">
             登录即表示您同意{" "}
-            <a
-              href="/privacy"
-              className="font-medium text-indigo-600 hover:text-indigo-700"
-            >
+            <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-700">
               隐私协议
             </a>{" "}
             和{" "}
-            <a
-              href="/terms"
-              className="font-medium text-indigo-600 hover:text-indigo-700"
-            >
+            <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-700">
               服务条款
             </a>
           </p>

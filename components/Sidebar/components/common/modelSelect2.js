@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { useSearchEngine } from "../../hooks/useSearchEngine";
-import { setCurrentSearchSource } from "../../../../public/storage";
 import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { setCurrentSearchSource } from "../../../../public/storage";
+import { useSearchEngine } from "../../hooks/useSearchEngine";
 
 const ModelSelector2 = ({ useInput }) => {
   const { getSearchSource, handleSearchSourceChange, getSearchSourceIcon, getSearchSourceName } =

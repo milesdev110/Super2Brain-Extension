@@ -1,10 +1,6 @@
 export function Logo({ className }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 64 64"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg className={className} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
       <path
         className="fill-[#1E8BCA]"
         d="M26.1,24.8c0,0-4.5-7.1,2.8-13.7c6.8-6.3,16.5-1.1,18.7,0.1C47.5,11.2,30.3,11.2,26.1,24.8z"

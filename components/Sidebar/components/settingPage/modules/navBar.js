@@ -1,4 +1,4 @@
-import { Settings, Cpu, Info, Bell } from "lucide-react";
+import { Cpu, Info, Settings } from "lucide-react";
 
 const tabs = [
   { name: "基础设置", icon: Settings },
@@ -16,11 +16,7 @@ const NavBar = ({ activeTab, onTabChange }) => {
               onClick={() => onTabChange(tab.name)}
               className={`
                 relative flex items-center py-4 px-1 text-sm font-medium
-                ${
-                  activeTab === tab.name
-                    ? "text-indigo-600"
-                    : "text-gray-500 hover:text-gray-700"
-                }
+                ${activeTab === tab.name ? "text-indigo-600" : "text-gray-500 hover:text-gray-700"}
               `}
             >
               <tab.icon className="h-5 w-5 mr-2" />

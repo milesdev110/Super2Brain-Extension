@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { getResponse } from "../utils/index.js";
 
 export const useNotesChat = (userInput = "", selectedModel, searchEnabled) => {
@@ -67,8 +67,7 @@ export const useNotesChat = (userInput = "", selectedModel, searchEnabled) => {
                 msg.id === aiMessage.id
                   ? {
                       ...msg,
-                      reasoning_content:
-                        progress.reasoning_content || msg.reasoning_content,
+                      reasoning_content: progress.reasoning_content || msg.reasoning_content,
                       content: progress.response || msg.content,
                       ...(progress.response && {
                         isClosed: true,
@@ -189,9 +188,7 @@ export const useNotesChat = (userInput = "", selectedModel, searchEnabled) => {
           if (progress.stage === 2 && progress.results) {
             setMessages((prev) =>
               prev.map((msg) =>
-                msg.id === messageId
-                  ? { ...msg, related: progress.results }
-                  : msg
+                msg.id === messageId ? { ...msg, related: progress.results } : msg
               )
             );
           } else if (progress.stage === 3) {
@@ -200,8 +197,7 @@ export const useNotesChat = (userInput = "", selectedModel, searchEnabled) => {
                 msg.id === messageId
                   ? {
                       ...msg,
-                      reasoning_content:
-                        progress.reasoning_content || msg.reasoning_content,
+                      reasoning_content: progress.reasoning_content || msg.reasoning_content,
                       content: progress.response || msg.content,
                       ...(progress.response && {
                         isClosed: true,

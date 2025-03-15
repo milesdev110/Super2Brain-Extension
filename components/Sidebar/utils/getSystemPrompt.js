@@ -2,9 +2,7 @@ export const getSystemPrompt = (initialResults, context) => {
   const contextSection = context?.length
     ? `
     历史对话上下文：
-    ${context
-      .map((msg) => `${msg.role === "user" ? "用户" : "助手"}: ${msg.content}`)
-      .join("\n")}
+    ${context.map((msg) => `${msg.role === "user" ? "用户" : "助手"}: ${msg.content}`).join("\n")}
     `
     : "";
 

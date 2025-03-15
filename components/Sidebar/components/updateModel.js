@@ -33,9 +33,7 @@ const UpdateNotification = ({ isVisible, updateInfo }) => {
             <Info className="w-16 h-16 text-indigo-500" />
           </div>
 
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            发现新版本
-          </h3>
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">发现新版本</h3>
 
           <div className="text-sm text-gray-600 mb-4">
             <span className="bg-gray-100 px-2 py-1 rounded mr-2">

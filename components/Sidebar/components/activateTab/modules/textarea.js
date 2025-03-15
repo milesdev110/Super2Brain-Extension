@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Send } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Tooltip } from "react-tooltip";
+import { AI_MODELS } from "../../../config/models";
 import { createTags } from "../../../contants/activateBar";
 import { useScreenshotHandler } from "../../../hooks/useScreenshotHandler";
 import { ModelSelector } from "../../common/modelSelect";
 import { TagButton } from "./TagButton";
-import { AI_MODELS } from "../../../config/models";
 
 export const TextareaRef = ({
   useInput,

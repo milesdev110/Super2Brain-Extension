@@ -1,6 +1,6 @@
-import { config } from "../../config/index";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getUserInput } from "../../../public/storage";
+import { config } from "../../config/index";
 
 const fetchPoints = async () => {
   const response = await fetch(`https://extension-update.oss-cn-beijing.aliyuncs.com/point.json`);

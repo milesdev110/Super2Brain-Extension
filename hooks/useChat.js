@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { getResponse } from "../utils/index.js";
 
 export const useChat = (useInput = false) => {
@@ -21,9 +21,7 @@ export const useChat = (useInput = false) => {
   const updateMessage = useCallback((messageId, updates) => {
     setState((prev) => ({
       ...prev,
-      messages: prev.messages.map((msg) =>
-        msg.id === messageId ? { ...msg, ...updates } : msg
-      ),
+      messages: prev.messages.map((msg) => (msg.id === messageId ? { ...msg, ...updates } : msg)),
     }));
   }, []);
 
@@ -86,14 +84,7 @@ export const useChat = (useInput = false) => {
     } finally {
       updateState({ loading: false });
     }
-  }, [
-    useInput,
-    state.query,
-    state.loading,
-    state.messages,
-    updateState,
-    updateMessage,
-  ]);
+  }, [useInput, state.query, state.loading, state.messages, updateState, updateMessage]);
 
   // 处理复制
   const handleCopy = useCallback(async (content, messageId) => {
@@ -109,9 +100,7 @@ export const useChat = (useInput = false) => {
   // 处理重新生成
   const handleRegenerate = useCallback(
     async (messageId) => {
-      const currentIndex = state.messages.findIndex(
-        (msg) => msg.id === messageId
-      );
+      const currentIndex = state.messages.findIndex((msg) => msg.id === messageId);
       if (currentIndex < 1) return;
 
       const userQuestion = state.messages[currentIndex - 1].content;

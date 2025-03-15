@@ -1,6 +1,6 @@
-import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import { memo, useMemo } from "react";
+import { HelpCircle } from "lucide-react";
+import { memo } from "react";
 
 const QuestionLoading = () => {
   const ballCount = 5;
@@ -30,12 +30,7 @@ const QuestionLoading = () => {
 };
 
 const AnswerQuestion = memo(
-  ({
-    relatedQuestions,
-    onQuestionClick,
-    isRelatedQuestions,
-    isShowRelatedQuestions,
-  }) => {
+  ({ relatedQuestions, onQuestionClick, isRelatedQuestions, isShowRelatedQuestions }) => {
     return (
       <>
         {isRelatedQuestions && (

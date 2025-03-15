@@ -1,5 +1,5 @@
-import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { HelpCircle } from "lucide-react";
 import { memo, useMemo } from "react";
 
 const QuestionLoading = () => {
@@ -30,10 +30,7 @@ const QuestionLoading = () => {
 };
 
 export const RelatedQuestions = memo(({ message, setQuery }) => {
-  const questions = useMemo(
-    () => message.relatedQuestions || [],
-    [message.relatedQuestions]
-  );
+  const questions = useMemo(() => message.relatedQuestions || [], [message.relatedQuestions]);
 
   return (
     <>

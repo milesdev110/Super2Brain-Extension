@@ -1,5 +1,4 @@
-import { Settings } from "lucide-react";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 
 export const useDeepSearch = (
   userInput,

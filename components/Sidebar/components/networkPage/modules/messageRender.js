@@ -1,22 +1,20 @@
-import {
-  Loader2,
-  CheckCircle2,
-  Search,
-  XCircle,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  RefreshCw,
-  Check,
-  Bot,
-} from "lucide-react";
-import { marked } from "marked";
-import { ResponseLoading } from "./responseLoading";
-import { PlaceHolder } from "./placeHolder";
-import { RelatedQuestions } from "./RelatedQuestions";
-import React, { useRef, useEffect, useState } from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import {
+  Bot,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Copy,
+  Loader2,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
+import { marked } from "marked";
+import React, { useEffect, useRef, useState } from "react";
+import { PlaceHolder } from "./placeHolder";
+import { RelatedQuestions } from "./RelatedQuestions";
+import { ResponseLoading } from "./responseLoading";
 
 const commonClassNames = `text-sm break-words leading-relaxed  overflow-wrap break-word
     prose-p:line-height-6 prose-p:pb-0 prose-p:mb-0  prose-p:text-stone-900 prose-p:text-[14px]

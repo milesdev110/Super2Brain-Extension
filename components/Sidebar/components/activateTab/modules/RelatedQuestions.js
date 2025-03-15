@@ -1,5 +1,5 @@
 import { HelpCircle } from "lucide-react";
-import { QuestionLoading } from "./realtedLoading";
+import { QuestionLoading } from "./relatedLoading";
 
 const RelatedQuestions = ({ loading, setQuery, questions }) => {
   return (

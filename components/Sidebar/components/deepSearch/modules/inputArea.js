@@ -1,7 +1,7 @@
-import { Send, Brain } from "lucide-react";
+import { Brain, Send } from "lucide-react";
+import { useState } from "react";
 import { Tooltip } from "react-tooltip";
 import { ModelSelector } from "../../common/modelSelect";
-import { useState } from "react";
 import { ModelSelector2 } from "../../common/modelSelect2";
 const InputArea = ({
   query,

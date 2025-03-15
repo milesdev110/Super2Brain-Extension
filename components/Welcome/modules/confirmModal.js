@@ -11,7 +11,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm }) => {
         </div>
         <div className="space-y-3">
           <p className="text-lg text-gray-600">
-          正在导入您的书签数据，这可能需要一些时间，您可以将此界面放在后台，浏览其他页面。
+            正在导入您的书签数据，这可能需要一些时间，您可以将此界面放在后台，浏览其他页面。
           </p>
           <p className="text-base text-gray-500">
             请保持浏览器保持在打开状态，等待导入完成后点击知道了。

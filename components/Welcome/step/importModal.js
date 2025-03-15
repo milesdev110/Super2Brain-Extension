@@ -1,22 +1,21 @@
-import React, { useEffect, useState, useCallback } from "react";
-import CheckboxTree from "react-checkbox-tree";
-import "react-checkbox-tree/lib/react-checkbox-tree.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheckSquare,
-  faSquare,
-  faMinus,
-  faChevronRight,
   faChevronDown,
-  faPlusSquare,
-  faMinusSquare,
+  faChevronRight,
+  faFile,
   faFolder,
   faFolderOpen,
-  faFile,
+  faMinus,
+  faMinusSquare,
+  faPlusSquare,
+  faSquare,
 } from "@fortawesome/free-solid-svg-icons";
-import { getItem } from "../../../public/storage";
-import { resetCounts } from "../../../public/storage";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Loader2 } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import CheckboxTree from "react-checkbox-tree";
+import "react-checkbox-tree/lib/react-checkbox-tree.css";
+import { getItem, resetCounts } from "../../../public/storage";
 
 const FONT_AWESOME_ICONS = {
   check: (
@@ -26,46 +25,17 @@ const FONT_AWESOME_ICONS = {
     />
   ),
   uncheck: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-uncheck text-gray-400 bg-white"
-      icon={faSquare}
-    />
+    <FontAwesomeIcon className="rct-icon rct-icon-uncheck text-gray-400 bg-white" icon={faSquare} />
   ),
   halfCheck: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-half-check text-indigo-400"
-      icon={faMinus}
-    />
+    <FontAwesomeIcon className="rct-icon rct-icon-half-check text-indigo-400" icon={faMinus} />
   ),
-  expandClose: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-expand-close"
-      icon={faChevronRight}
-    />
-  ),
-  expandOpen: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-expand-open"
-      icon={faChevronDown}
-    />
-  ),
-  expandAll: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-expand-all"
-      icon={faPlusSquare}
-    />
-  ),
-  collapseAll: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-collapse-all"
-      icon={faMinusSquare}
-    />
-  ),
+  expandClose: <FontAwesomeIcon className="rct-icon rct-icon-expand-close" icon={faChevronRight} />,
+  expandOpen: <FontAwesomeIcon className="rct-icon rct-icon-expand-open" icon={faChevronDown} />,
+  expandAll: <FontAwesomeIcon className="rct-icon rct-icon-expand-all" icon={faPlusSquare} />,
+  collapseAll: <FontAwesomeIcon className="rct-icon rct-icon-collapse-all" icon={faMinusSquare} />,
   parentClose: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-parent-close text-gray-600"
-      icon={faFolder}
-    />
+    <FontAwesomeIcon className="rct-icon rct-icon-parent-close text-gray-600" icon={faFolder} />
   ),
   parentOpen: (
     <FontAwesomeIcon
@@ -73,12 +43,7 @@ const FONT_AWESOME_ICONS = {
       icon={faFolderOpen}
     />
   ),
-  leaf: (
-    <FontAwesomeIcon
-      className="rct-icon rct-icon-leaf-close text-gray-500"
-      icon={faFile}
-    />
-  ),
+  leaf: <FontAwesomeIcon className="rct-icon rct-icon-leaf-close text-gray-500" icon={faFile} />,
 };
 
 const fadeInKeyframes = `
@@ -100,11 +65,7 @@ if (typeof document !== "undefined") {
   document.head.appendChild(style);
 }
 
-export default function SecondRight({
-  isAllSelected,
-  onImportSuccess,
-  onNext,
-}) {
+export default function SecondRight({ isAllSelected, onImportSuccess, onNext }) {
   const [bookmarkTree, setBookmarkTree] = useState([]);
   const [expandedNodes, setExpandedNodes] = useState([]);
   const [selectedNodes, setSelectedNodes] = useState([]);
@@ -251,9 +212,7 @@ export default function SecondRight({
   const calculateProgress = () => {
     const { success, failed } = status;
     const completedCount = success + failed;
-    return totalBookmarks
-      ? Math.round((completedCount / totalBookmarks) * 100)
-      : 0;
+    return totalBookmarks ? Math.round((completedCount / totalBookmarks) * 100) : 0;
   };
 
   if (isLoading) {
@@ -274,14 +233,10 @@ export default function SecondRight({
             </p>
             <div className="space-y-4 mb-6">
               <div className="flex items-center space-x-3 text-green-600 bg-green-50 p-3 rounded-lg">
-                <span className="font-medium">
-                  成功导入: {status.success} 个书签
-                </span>
+                <span className="font-medium">成功导入: {status.success} 个书签</span>
               </div>
               <div className="flex items-center space-x-3 text-red-600 bg-red-50 p-3 rounded-lg">
-                <span className="font-medium">
-                  导入失败: {status.failed} 个书签
-                </span>
+                <span className="font-medium">导入失败: {status.failed} 个书签</span>
               </div>
 
               <div className="w-full bg-gray-100 rounded-full h-2">
@@ -291,9 +246,7 @@ export default function SecondRight({
                 />
               </div>
 
-              <div className="text-right text-sm text-gray-600">
-                {calculateProgress()}% 完成
-              </div>
+              <div className="text-right text-sm text-gray-600">{calculateProgress()}% 完成</div>
             </div>
             <div className="flex justify-end">
               <button

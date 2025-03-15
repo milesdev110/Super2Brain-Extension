@@ -1,5 +1,5 @@
-import { getUserInput, getTokenTime, removeTokenTime } from "../../../public/storage";
 import { useEffect } from "react";
+import { getTokenTime, getUserInput, removeTokenTime } from "../../../public/storage";
 
 export const useCheckLoginTime = (setUserInput) => {
   useEffect(() => {

@@ -1,29 +1,26 @@
 import {
-  setOllamaModels,
-  getOllamaModels,
   getCustomModelIds,
+  getLmstudioModels,
+  getOllamaModels,
   setCustomModelIds,
   setCustomModels,
   setLmstudioModels,
-  getLmstudioModels,
+  setOllamaModels,
 } from "../../../../../public/storage";
 
 export const checkDeepSeekApiKey = async (apiKey) => {
   try {
-    const response = await fetch(
-      "https://api.deepseek.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [{ role: "user", content: "Hi" }],
-        }),
-      }
-    );
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [{ role: "user", content: "Hi" }],
+      }),
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -62,25 +59,16 @@ export const checkClaudeApiKey = async (apiKey) => {
   }
 };
 
-export const checkOpenAiApiKey = async (apiKey, baseUrl = null) => {
+export const checkOpenAiApiKey = async (apiKey) => {
   try {
-    if (baseUrl) {
-      baseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-      // 移除末尾的 v1 路径（如果存在）
-      baseUrl = baseUrl.endsWith("/v1") ? baseUrl.slice(0, -3) : baseUrl;
-    }
-    const url = baseUrl
-      ? `${baseUrl}/v1/chat/completions`
-      : "https://api.openai.com/v1/chat/completions";
-
-    const response = await fetch(url, {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: "Hi" }],
       }),
     });
@@ -93,7 +81,7 @@ export const checkOpenAiApiKey = async (apiKey, baseUrl = null) => {
     return true;
   } catch (error) {
     console.error("API密钥验证错误:", error);
-    throw error;
+    return false;
   }
 };
 

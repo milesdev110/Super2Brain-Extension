@@ -1,15 +1,10 @@
-import { useEffect, useState } from 'react';
-import { getWebSummary, setWebSummary } from '../../../public/storage';
-import { fetchUrlContent } from '../utils/chat';
-import { pipe } from 'lodash/fp';
+import { pipe } from "lodash/fp";
+import { useEffect, useState } from "react";
+import { getWebSummary, setWebSummary } from "../../../public/storage";
+import { fetchUrlContent } from "../utils/chat";
 
-export const useSummary = ({
-  currentUrl,
-  pageContent,
-  userInput,
-  webPreview,
-}) => {
-  const [pageSummary, setPageSummary] = useState('');
+export const useSummary = ({ currentUrl, pageContent, userInput, webPreview }) => {
+  const [pageSummary, setPageSummary] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
   const [summaryCache, setSummaryCache] = useState(new Map());
   const [loadingUrls, setLoadingUrls] = useState(new Map());
@@ -49,7 +44,7 @@ export const useSummary = ({
         setPageLoading(true);
         setLoadingUrls((prev) => new Map(prev).set(url, true));
         const cachedSummary = await getWebSummary(url);
-        
+
         if (cachedSummary) {
           setPageLoading(false);
           setLoadingUrls((prev) => new Map(prev).set(url, false));
@@ -63,7 +58,7 @@ export const useSummary = ({
         setSummaryCache((prev) => new Map(prev).set(url, summary));
         setPageSummary(summary);
       } catch (error) {
-        console.error('获取摘要失败:', error);
+        console.error("获取摘要失败:", error);
       } finally {
         if (url === currentUrl) {
           setPageLoading(false);
@@ -76,7 +71,7 @@ export const useSummary = ({
       fetchSummary(currentUrl, pageContent);
     } else {
       setPageLoading(loadingUrls.get(currentUrl) ?? false);
-      setPageSummary(summaryCache.get(currentUrl) ?? '');
+      setPageSummary(summaryCache.get(currentUrl) ?? "");
     }
   }, [currentUrl, pageContent, userInput, webPreview]);
 
@@ -86,4 +81,4 @@ export const useSummary = ({
     summaryCache,
     loadingUrls,
   };
-}; 
+};

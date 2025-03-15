@@ -1,15 +1,16 @@
-import { AI_MODELS, deepseekModel, claudeModel, openaiModel } from "../../config/models";
-import { Bot, ChevronDown, Settings, Image, Scissors } from "lucide-react";
+import { Bot, ChevronDown, Scissors } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import {
-  getDeepSeekApiKey,
   getClaudeApiKey,
-  getOpenaiApiKey,
   getCustomConfig,
+  getCustomModels,
+  getDeepSeekApiKey,
   getLmstudioModels,
+  getOllamaModels,
+  getOpenaiApiKey,
   getOpenAiUrl,
 } from "../../../../public/storage";
-import { useState, useEffect, useRef } from "react";
-import { getOllamaModels, getCustomModels } from "../../../../public/storage";
+import { AI_MODELS, claudeModel, deepseekModel, openaiModel } from "../../config/models";
 
 const ModelSelector = ({
   messages,

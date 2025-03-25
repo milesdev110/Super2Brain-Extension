@@ -1,6 +1,17 @@
-## Super2Brain
+## Super2Brain 浏览器插件 
 
-### 功能特性
+### 主要功能特性
+
+- 网页长文章速览
+- 自动操控浏览器访问多标签页，生成洞察分析报告
+- 与当前标签页内容对话 
+- 通过操作浏览器多轮后生成最后的报告
+  
+<img width="30%" src="https://github.com/user-attachments/assets/daae1dc8-0e24-4bfc-b5aa-1f5194793d52">
+<img width="30%" src="https://github.com/user-attachments/assets/cf6bb679-3726-4c8d-884e-f2b371fa1d73">
+<img width="30%" src="https://github.com/user-attachments/assets/c88798c2-f84c-4b96-bfe1-a4d87ef38b5b">
+
+### 其它功能特性
 
 - 🤖 多模型 AI 支持
 
@@ -28,19 +39,6 @@
 - Markmap
 
 ### 开始使用
-
-环境变量
-
-`components/config/index.js`
-
-```js
-export const config = {
-  token: "", // 调用后端接口的 token
-  baseUrl: "", // 调用后端接口的 url
-  modelUrl: "", // https://example.com 不需要到 v1
-  apiKey: "", // 调用 AI 的 api key
-};
-```
 
 1. 克隆项目
 

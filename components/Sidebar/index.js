@@ -88,9 +88,9 @@ export default function Sidebar() {
       activatePage,
     });
 
-  // useEffect(() => {
-  //   fetchRelatedQuestions();
-  // }, [pageContent, currentUrl, activatePage]);
+  useEffect(() => {
+    fetchRelatedQuestions();
+  }, [pageContent, currentUrl, activatePage]);
 
   useEffect(() => {
     const fetchUserInput = async () => {

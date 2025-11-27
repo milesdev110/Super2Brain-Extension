@@ -247,3 +247,13 @@ export const AI_MODELS2 = {
     supportsImage: true,
   },
 };
+
+export const SPECIAL_QUESTIONS = [
+  "是否有法律风险",
+  "性价比是否比较高",
+  "生成投标文案"
+];
+
+export const LEGAL_RISK_QUESTION = SPECIAL_QUESTIONS[0];
+export const COST_EFFECTIVE_QUESTION = SPECIAL_QUESTIONS[1];
+export const BID_PROPOSAL_QUESTION = SPECIAL_QUESTIONS[2];

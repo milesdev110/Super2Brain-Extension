@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { getDeepSeekApiKey } from "../../../public/storage";
 import { config } from "../../config/index";
+import { SPECIAL_QUESTIONS } from "../config/models";
 
 const buildSystemMessage = () => {
   return {
@@ -99,7 +100,7 @@ export const useRelatedQuestions = ({ content = "", currentUrl, activatePage }) 
     }
 
     try {
-      const questions = await fetchRelatedQuestions(content);
+      const questions = SPECIAL_QUESTIONS ;//await fetchRelatedQuestions(content);
       const validQuestions = Array.isArray(questions) ? questions : [];
 
       setRelatedQuestions((prev) => {

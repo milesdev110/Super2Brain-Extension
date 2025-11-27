@@ -1,5 +1,6 @@
 import { getUserInput } from "../../../public/storage.js";
 import { config } from "../../config/index";
+import { LEGAL_RISK_QUESTION, COST_EFFECTIVE_QUESTION, BID_PROPOSAL_QUESTION } from "../config/models";
 
 const fetchRelatedQuestions = async (messages, fullResponse) => {
   const apiKey = await getUserInput();
@@ -443,7 +444,7 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
       state: 3,
       isRelatedQuestions: true,
     });
-    const relatedQuestions = ["当前项目是否有法律风险","当前项目的性价比是否比较高","请你生成投标文案。"];; //await fetchRelatedQuestions(messages, fullContent);
+    const relatedQuestions = [LEGAL_RISK_QUESTION, COST_EFFECTIVE_QUESTION, BID_PROPOSAL_QUESTION]; //await fetchRelatedQuestions(messages, fullContent);
     options.onProgress({
       state: 2,
       relatedQuestions,

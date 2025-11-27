@@ -35,7 +35,7 @@ import { fetchCriticalAnalysis, fetchUrlContent } from "./utils/chat";
 import { processContent } from "./utils/contentProcessor";
 
 export default function Sidebar() {
-  const [activatePage, setActivatePage] = useState(0);
+  const [activatePage, setActivatePage] = useState(1);
   const [currentUrl, setCurrentUrl] = useState("");
   const [pageCriticalAnalysis, setPageCriticalAnalysis] = useState("");
   const [userInput, setUserInput] = useState("");

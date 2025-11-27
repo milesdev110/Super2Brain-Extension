@@ -4,7 +4,7 @@ import { config } from "../../config/index";
 const makeQuestionMore = async (query) => {
   const token = await getUserInput();
   const fetchQuestion = async () => {
-    const response = await fetch(`${config.baseUrl}/text/v1/chat/completions`, {
+    const response = await fetch(`${config.baseUrl}/v1/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -27,7 +27,7 @@ const makeQuestionMore = async (query) => {
             content: `开始生成，注意不要附带markdown格式`,
           },
         ],
-        model: "gpt-4o-mini",
+        model: "deepseek-chat",
         stream: true,
         temperature: 0.7,
       }),

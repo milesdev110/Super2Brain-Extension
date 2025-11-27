@@ -7,14 +7,14 @@ import { createWebContent } from "../components/networkPage/utils/thingAgent.js"
 const fetchRelatedQuestions = async (query, answer, userInput) => {
   const apiKey = await getUserInput();
 
-  const response = await fetch(`${config.baseUrl}/text/v1/chat/completions`, {
+  const response = await fetch(`${config.baseUrl}/v1/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "deepseek-chat",
       stream: true,
       messages: [
         {

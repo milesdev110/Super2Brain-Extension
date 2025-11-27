@@ -2,9 +2,9 @@ import { config } from "../../../../config/index";
 
 export const fetchStreamResponse = async (
   messages,
-  model = "gpt-4o-mini",
+  model = "deepseek-chat",
   baseUrl = config.baseUrl,
-  provider = "super2brain",
+  provider = "deepseek",
   apiKey = ""
 ) => {
   if (baseUrl?.includes("deepseek") && model?.toLowerCase() === "deepseek-r1") {
@@ -20,8 +20,8 @@ export const fetchStreamResponse = async (
 
   try {
     const supportedProviders = [
-      "super2brain",
       "deepseek",
+      "super2brain",
       "openai",
       "lmstudio",
       "ollama",
@@ -36,10 +36,11 @@ export const fetchStreamResponse = async (
       }
 
       const endpoint = {
-        super2brain: `${adjustedBaseUrl}/text/v1/chat/completions`,
+        default: `${adjustedBaseUrl}/v1/chat/completions`,
+        // super2brain: `${adjustedBaseUrl}/text/v1/chat/completions`,
+        super2brain: `${adjustedBaseUrl}/v1/chat/completions`,
         lmstudio: `${adjustedBaseUrl}/v1/chat/completions`,
         ollama: `${adjustedBaseUrl}/v1/chat/completions`,
-        default: `${adjustedBaseUrl}/v1/chat/completions`,
       };
 
       const requestBody = {

@@ -1,3 +1,4 @@
 export const config = {
-  baseUrl: "https://s2bapi.zima.pet",
+  baseUrl: "https://api.deepseek.com",
+  //baseUrl: "https://s2bapi.zima.pet",
 };

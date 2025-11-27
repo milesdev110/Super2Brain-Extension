@@ -92,7 +92,7 @@ const fetchData = async (messages, userInput, model) => {
     }),
   };
 
-  return fetch(`${config.baseUrl}/text/v1/chat/completions/summary`, options)
+  return fetch(`${config.baseUrl}/v1/chat/completions/summary`, options)
     .then(handleResponse)
     .catch((error) => {
       console.error("API 调用失败:", error);
@@ -100,7 +100,7 @@ const fetchData = async (messages, userInput, model) => {
     });
 };
 
-export const fetchUrlContent = (content, userInput, model = "gpt-4o-mini") => {
+export const fetchUrlContent = (content, userInput, model = "deepseek-chat") => {
   console.log("content", content);
   return fetchData([buildSystemPrompt(content), buildUserPrompt()], userInput, model);
 };

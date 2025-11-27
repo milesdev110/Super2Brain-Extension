@@ -4,7 +4,7 @@ import { getResponse } from "../utils/index.js";
 export const useChat = (useInput = false) => {
   const [state, setState] = useState({
     isOpen: false,
-    model: "gpt-4",
+    model: "deepseek-chat",
     query: "",
     loading: false,
     messages: [],

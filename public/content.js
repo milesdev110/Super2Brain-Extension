@@ -7,16 +7,23 @@ async function extractArticleContent() {
 }
 
 function callLLM(content) {
-  const apiUrl = `https://s2bapi.zima.pet/text/v1/mindmap/chat/completions`;
+  // const apiUrl = `https://s2bapi.zima.pet/text/v1/mindmap/chat/completions`;
+  const apiUrl = `${config.baseUrl}/v1/chat/completions`;
+  const token =  getUserInput();
+  if (!token) {
+    console.error("No API key provided.");
+    return;
+  }
+  console.log("API key:", token);
 
   fetch(apiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer sk-OSqhqCm1DoE24Kf0E2796eAeE75b484d9f08CbD779E7870a`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "deepseek-chat",
       messages: [
         { role: "system", content: "You are a helpful assistant." },
         {

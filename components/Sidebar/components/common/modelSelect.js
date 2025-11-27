@@ -124,6 +124,15 @@ const ModelSelector = ({
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-xl shadow-lg z-10 w-[200px] overflow-hidden">
           <div className="py-2 max-h-[800px] overflow-y-auto">
+            {/* DeepSeek 模型组 */}
+            <ModelGroup
+              title="By DeepSeek"
+              models={modelList.filter((model) => model.provider === "deepseek")}
+              selectedModel={selectedModel}
+              selectedModelProvider={selectedModelProvider}
+              onModelSelect={handleModelSelect}
+            />
+
             {/* ShareAI 模型组 */}
             <ModelGroup
               title="By shareAI"
@@ -134,14 +143,7 @@ const ModelSelector = ({
               onModelSelect={handleModelSelect}
             />
 
-            {/* DeepSeek 模型组 */}
-            <ModelGroup
-              title="By DeepSeek"
-              models={modelList.filter((model) => model.provider === "deepseek")}
-              selectedModel={selectedModel}
-              selectedModelProvider={selectedModelProvider}
-              onModelSelect={handleModelSelect}
-            />
+
 
             {/* Claude 模型组 */}
             <ModelGroup

@@ -11,7 +11,7 @@ const openai = new OpenAI({
 const generateSimilarQuestions = async (query, response, onProgress) => {
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
@@ -49,7 +49,7 @@ const generateSimilarQuestions = async (query, response, onProgress) => {
 
 const determineSearchNeed = async (query) => {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "deepseek-chat",
     messages: [
       {
         role: "system",
@@ -105,8 +105,8 @@ const buildMessages = (systemPrompt, context, searchResults, query) => [
 ];
 
 const getFinalResponse = async (messages, onProgress) => {
-  const response = await createStreamRequest("/text/v1/chat/completions", {
-    model: "gpt-4o-mini",
+  const response = await createStreamRequest("/v1/chat/completions", {
+    model: "deepseek-chat",
     messages,
   });
 

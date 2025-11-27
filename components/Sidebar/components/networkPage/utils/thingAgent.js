@@ -8,7 +8,7 @@ export const createWebContent = (url, content, query) => ({
   timestamp: new Date().toISOString(),
 });
 
-export const createThingAgent = ({ apiKey, model = "gpt-4o-mini", baseURL, provider }) => {
+export const createThingAgent = ({ apiKey, model = "deepseek-chat", baseURL, provider }) => {
   if (model === "Deepseek-R1") {
     model = "asoner";
   } else if (model === "Deepseek-V3") {

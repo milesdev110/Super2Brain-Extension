@@ -2,7 +2,7 @@ import { getUserInput } from "../../../public/storage";
 import { config } from "../../config";
 import { callOpenaiWithRetry } from "./callAi";
 
-export const check = async (query, selectedModel = "gpt-4o-mini", baseUrl = config.baseUrl) => {
+export const check = async (query, selectedModel = "deepseek-chat", baseUrl = config.baseUrl) => {
   const token = await getUserInput();
 
   const messages = [
@@ -25,7 +25,7 @@ export const check = async (query, selectedModel = "gpt-4o-mini", baseUrl = conf
     messages,
     selectedModel,
     token,
-    `${config.baseUrl}/text`
+    `${config.baseUrl}`
   );
 
   if (response.trim().toLowerCase() === "true") {

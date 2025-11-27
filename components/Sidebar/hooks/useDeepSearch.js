@@ -15,7 +15,7 @@ export const useDeepSearch = (
   const [isLoading, setIsLoading] = useState(false);
   const [currentStatus, setCurrentStatus] = useState("");
   const [hasError, setHasError] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+  const [selectedModel, setSelectedModel] = useState("deepseek-chat");
   const [isTerminating, setIsTerminating] = useState(false);
   const abortControllerRef = useRef(null);
 

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { getUserInput } from "../../../public/storage";
+import { getDeepSeekApiKey } from "../../../public/storage";
 import { config } from "../../config/index";
 
 const buildSystemMessage = () => {
@@ -16,12 +16,13 @@ const buildSystemMessage = () => {
 };
 
 const fetchRelatedQuestions = async (content) => {
-  const userInput = await getUserInput();
+  const userInput = await getDeepSeekApiKey();
+  console.log("userInput", userInput);
   if (!userInput.trim()) return;
 
   if (content.trim() === "") return;
 
-  const response = await fetch(`${config.baseUrl}/text/v1/chat/completions`, {
+  const response = await fetch(`${config.baseUrl}/v1/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -29,7 +30,7 @@ const fetchRelatedQuestions = async (content) => {
     },
     body: JSON.stringify({
       messages: [buildSystemMessage(), { role: "user", content }],
-      model: "gpt-4o-mini",
+      model: "deepseek-chat",
       stream: true,
     }),
   });

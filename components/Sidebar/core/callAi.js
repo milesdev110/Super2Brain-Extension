@@ -2,7 +2,7 @@ import { removeThinkTags, removeThinkingTags } from "./utils";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const callOpenai = async (messages, model = "gpt-4o-mini", apikey, baseUrl) => {
+const callOpenai = async (messages, model = "deepseek-chat", apikey, baseUrl) => {
   try {
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       throw new Error("消息参数无效");

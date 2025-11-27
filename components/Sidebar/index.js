@@ -44,7 +44,7 @@ export default function Sidebar() {
   const [pageLoading, setPageLoading] = useState(true);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [isAddPoint, setIsAddPoint] = useState(false);
-  const [networkSelectedModel, setNetworkSelectedModel] = useState("gpt-4o-mini");
+  const [networkSelectedModel, setNetworkSelectedModel] = useState("deepseek-chat");
 
   const [pageSystemMessage, setPageSystemMessage] = useState("");
 
@@ -728,14 +728,14 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (activatePage === 1) {
-      setSelectedModel("Deepseek-R1");
-      setSelectedModelProvider("super2brain");
+      setSelectedModel("DeepSeek-V3");
+      setSelectedModelProvider("deepseek");
     } else if (activatePage === 2) {
-      setSelectedModel("gpt-4o-mini");
-      setSelectedModelProvider("super2brain");
+      setSelectedModel("DeepSeek-V3");
+      setSelectedModelProvider("deepseek");
     } else if (activatePage === 3) {
-      setSelectedModel("gpt-4o-mini");
-      setSelectedModelProvider("super2brain");
+      setSelectedModel("DeepSeek-V3");
+      setSelectedModelProvider("deepseek");
     }
   }, [activatePage]);
 

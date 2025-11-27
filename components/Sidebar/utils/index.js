@@ -15,7 +15,7 @@ const determineSearchNeed = async (userInput, query, model, searchEnabled) => {
 const generateSimilarQuestions = (openai) => async (query, response, onProgress) => {
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "deepseek-chat",
       messages: [
         {
           role: "system",
@@ -135,7 +135,7 @@ export const getResponse = async (
 
   const openai = new OpenAI({
     apiKey: userInput,
-    baseURL: `${config.baseUrl}/text/v1`,
+    baseURL: `${config.baseUrl}/v1`,
     dangerouslyAllowBrowser: true,
   });
 

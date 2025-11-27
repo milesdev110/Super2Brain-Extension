@@ -5,8 +5,11 @@ const processDocument = async (messages) => {
   const token = await getUserInput();
   console.log("messages", token);
   try {
-    const apiUrl = config.baseUrl + "/text/v1/chat/completions";
-    const model = "gpt-4o-mini";
+    //const apiUrl = config.baseUrl + "/text/v1/chat/completions";
+    const apiUrl = config.baseUrl +  "/v1/chat/completions";
+
+    // const model = "gpt-4o-mini";
+    const model = "deepseek-chat";
 
     const requestBody = {
       model,

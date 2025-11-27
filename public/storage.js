@@ -40,7 +40,7 @@ export async function saveUserInput(input) {
 }
 
 export async function getUserInput() {
-  const token = await getItem("Super2BrainToken");
+  const token = await getItem("deepSeekApiKey");
   return token;
 }
 

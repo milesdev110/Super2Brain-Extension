@@ -1,7 +1,7 @@
 import { getSearchSourceStorage } from "../../../../../public/storage";
 import { fetchStreamResponse, handleStreamResponse } from "./api";
 let flag = false;
-const invokeOpenAI = async (messages, model = "gpt-4o-mini", baseUrl, provider, userInput) => {
+const invokeOpenAI = async (messages, model = "deepseek-chat", baseUrl, provider, userInput) => {
   const response = await fetchStreamResponse(messages, model, baseUrl, provider, userInput);
   return handleStreamResponse(response, () => {});
 };
@@ -197,7 +197,7 @@ const getResponse = async (
   searchEnabled,
   onProgress,
   messageHistory = [],
-  model = "gpt-4o-mini",
+  model = "deepseek-chat",
   baseUrl,
   provider,
   userInput

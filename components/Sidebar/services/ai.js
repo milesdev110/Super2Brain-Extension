@@ -443,7 +443,7 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
       state: 3,
       isRelatedQuestions: true,
     });
-    const relatedQuestions = await fetchRelatedQuestions(messages, fullContent);
+    const relatedQuestions = ["当前项目是否有法律风险","当前项目的性价比是否比较高","请你生成投标文案。"];; //await fetchRelatedQuestions(messages, fullContent);
     options.onProgress({
       state: 2,
       relatedQuestions,

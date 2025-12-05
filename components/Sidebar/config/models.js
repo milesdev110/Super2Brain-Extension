@@ -251,9 +251,22 @@ export const AI_MODELS2 = {
 export const SPECIAL_QUESTIONS = [
   "是否有法律风险",
   "性价比是否比较高",
-  "生成投标文案"
+  "生成投标文案(结合之前项目生成)",
+  "项目匹配度分析",
+  "生成投标文案(不结合之前项目生成)",
 ];
 
 export const LEGAL_RISK_QUESTION = SPECIAL_QUESTIONS[0];
 export const COST_EFFECTIVE_QUESTION = SPECIAL_QUESTIONS[1];
-export const BID_PROPOSAL_QUESTION = SPECIAL_QUESTIONS[2];
+export const BID_PROPOSAL_WITH_PROJECT_QUESTION = SPECIAL_QUESTIONS[2];
+export const PROJECT_MATCHING_QUESTION = SPECIAL_QUESTIONS[3];
+export const BID_PROPOSAL_WITHOUT_PROJECT_QUESTION= SPECIAL_QUESTIONS[4];
+export const MY_PROJECT_INFO = `项目案例：
+【数据智能体】：基于大模型开发的数据智能体，可以通过自然语言查询数据，让AI基于搜索知识库文档、各种API接口的实时数据回答问题，生成下载报告。
+【小游戏】：在华北排名第一的小游戏厂商工作，在微信小游戏和抖音小游戏上开发，移植代理国外游戏运营，游戏有：《酒店大亨》《超级大餐厅》
+【智能硬件】：开发了一款健身房的App，通过蓝牙接入了智能电子秤，在App中记录体重等数据。
+【小米】：开发小米手机系统，超大型软件的协作管理和开发经验。对于安卓系统和App的性能优化有经验。有国际化项目的开发经验。
+【抖音】：开发 PICO 的 VR系统，对于底层性能优化有经验。
+【智能体开发】：为南方军方某部，开发了参谋智能体，包括基于私有数据的查询以及军事任务深入分析。
+【VR煤矿井下培训系统】：为山西某煤矿开发了井下安全培训的VR系统，包含：井下煤矿场景搭建，设备操作，安全问题回答。
+【宠物智能体】：通过给自己宠物拍照，AI 生成了花色一样的gif表情。`;

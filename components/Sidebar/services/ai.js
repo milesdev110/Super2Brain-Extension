@@ -1,6 +1,6 @@
 import { getUserInput } from "../../../public/storage.js";
 import { config } from "../../config/index";
-import { LEGAL_RISK_QUESTION, COST_EFFECTIVE_QUESTION, BID_PROPOSAL_QUESTION } from "../config/models";
+import { LEGAL_RISK_QUESTION, COST_EFFECTIVE_QUESTION, BID_PROPOSAL_WITH_PROJECT_QUESTION,BID_PROPOSAL_WITHOUT_PROJECT_QUESTION,PROJECT_MATCHING_QUESTION } from "../config/models";
 
 const fetchRelatedQuestions = async (messages, fullResponse) => {
   const apiKey = await getUserInput();
@@ -444,7 +444,7 @@ const callAI = async ({ provider, baseUrl, apiKey, model, messages, options = {}
       state: 3,
       isRelatedQuestions: true,
     });
-    const relatedQuestions = [LEGAL_RISK_QUESTION, COST_EFFECTIVE_QUESTION, BID_PROPOSAL_QUESTION]; //await fetchRelatedQuestions(messages, fullContent);
+    const relatedQuestions = [LEGAL_RISK_QUESTION, PROJECT_MATCHING_QUESTION, COST_EFFECTIVE_QUESTION, BID_PROPOSAL_WITH_PROJECT_QUESTION, BID_PROPOSAL_WITHOUT_PROJECT_QUESTION]; //await fetchRelatedQuestions(messages, fullContent);
     options.onProgress({
       state: 2,
       relatedQuestions,

@@ -410,11 +410,21 @@ export const ChatMessageList = ({
                         isShowRelatedQuestions={msg?.isShowRelatedQuestions || false}
                       />
 
-                      {isAssistant && (
+                      {/* {isAssistant && ( */}
                         <div className="flex justify-between items-start mt-2">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => onCopy(msg.content, index)}
+                              onClick={() => {
+                                // 如果 content 是数组，则提取其中的文本内容
+                                let contentToCopy = msg.content;
+                                if (Array.isArray(msg.content)) {
+                                  contentToCopy = msg.content
+                                    .filter(item => item.type === 'text')
+                                    .map(item => item.text)
+                                    .join('\n');
+                                }
+                                onCopy(contentToCopy, index);
+                              }}
                               className="p-1 hover:bg-gray-100 rounded-md"
                               title="复制内容"
                             >
@@ -426,7 +436,7 @@ export const ChatMessageList = ({
                             </button>
                           </div>
                         </div>
-                      )}
+                      {/* // )} */}
                     </div>
                   </div>
                 </div>
